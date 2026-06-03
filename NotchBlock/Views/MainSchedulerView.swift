@@ -170,21 +170,6 @@ struct MainSchedulerView: View {
 
     private func refreshActiveBlock() {
         activeBlock = store.activeBlock(at: now)
-        autoMarkMissed()
-    }
-
-    /// Marks past pending blocks as missed
-    private func autoMarkMissed() {
-        for block in store.pastPendingBlocks() {
-            let updated = TimeBlock(
-                id: block.id,
-                title: block.title,
-                startTime: block.startTime,
-                endTime: block.endTime,
-                status: .missed
-            )
-            store.update(updated)
-        }
     }
 
     private func markCompleted(_ block: TimeBlock) {
