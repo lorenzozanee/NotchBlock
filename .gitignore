@@ -19,3 +19,6 @@ xcuserdata/
 # Python cache
 __pycache__/
 *.pyc
+
+# ECC runtime state (machine-specific)
+.claude/ecc/install-state.json
