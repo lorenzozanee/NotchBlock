@@ -2,10 +2,12 @@ import SwiftUI
 
 struct MainSchedulerView: View {
     @ObservedObject var store: TimeBlockStore
+    var stats: StatisticsStore?
     @State private var showAddSheet = false
     @State private var editingBlock: TimeBlock?
     @State private var activeBlock: TimeBlock?
     @State private var now = Date()
+    @State private var showStats = false
 
     /// Timer fires every 30s to refresh active-block detection and relative times
     private let tickTimer = Timer.publish(every: 30, on: .main, in: .common).autoconnect()
@@ -28,6 +30,9 @@ struct MainSchedulerView: View {
         }
         .sheet(item: $editingBlock) { block in
             AddEditBlockView(store: store, existingBlock: block)
+        }
+        .sheet(isPresented: $showStats) {
+            if let stats { StatisticsView(stats: stats) }
         }
         .onAppear(perform: refreshActiveBlock)
         .onReceive(tickTimer) { _ in
@@ -54,6 +59,12 @@ struct MainSchedulerView: View {
                     .foregroundStyle(.secondary)
             }
             Spacer()
+            if stats != nil {
+                Button { showStats = true } label: {
+                    Label("统计", systemImage: "chart.bar.fill")
+                }
+                .buttonStyle(.bordered)
+            }
             Button {
                 showAddSheet = true
             } label: {

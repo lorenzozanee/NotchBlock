@@ -56,7 +56,10 @@ struct NotchBlockApp: App {
     var body: some Scene {
         // Main scheduler window — opened from menu bar
         WindowGroup {
-            MainSchedulerView(store: store)
+            MainSchedulerView(
+                store: store,
+                stats: StatisticsStore(store: store)
+            )
                 .onAppear {
                     notchTracker.start()
                     scheduler.start()
