@@ -22,3 +22,6 @@ __pycache__/
 
 # ECC runtime state (machine-specific)
 .claude/ecc/install-state.json
+
+# Build artifacts
+build/
