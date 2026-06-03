@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NotchBlock — 开发进度看板</title>
+<style>
+  :root {
+    --bg: #0d1117; --card: #161b22; --border: #30363d;
+    --text: #e6edf3; --muted: #8b949e;
+    --green: #3fb950; --blue: #58a6ff; --purple: #a371f7;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.6;
+    max-width: 960px; margin: 0 auto; padding: 40px 24px;
+  }
+  h1 { font-size: 2rem; font-weight: 700; margin-bottom: 4px; }
+  h1 span { color: var(--blue); }
+  .subtitle { color: var(--muted); margin-bottom: 32px; font-size: 0.95rem; }
+  h2 { font-size: 1.25rem; margin: 32px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  h3 { font-size: 1rem; margin: 20px 0 10px; }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px; margin-bottom: 32px;
+  }
+  .stat-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; text-align: center;
+  }
+  .stat-value { font-size: 1.8rem; font-weight: 700; }
+  .stat-label { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+  .stat-value.green { color: var(--green); }
+  .stat-value.blue { color: var(--blue); }
+  .stat-value.purple { color: var(--purple); }
+
+  .phase {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; margin-bottom: 20px; overflow: hidden;
+  }
+  .phase-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px 20px; border-bottom: 1px solid var(--border);
+  }
+  .phase-badge {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.9rem; background: var(--green); color: #000;
+  }
+  .phase-title { font-weight: 600; font-size: 1.05rem; }
+  .phase-status { margin-left: auto; font-size: 0.8rem; padding: 3px 10px; border-radius: 12px; background: var(--green); color: #000; }
+
+  .phase-body { padding: 16px 20px; }
+  .ac-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 8px;
+  }
+  .ac-item {
+    display: flex; align-items: flex-start; gap: 8px;
+    font-size: 0.88rem; padding: 6px 0;
+  }
+  .ac-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; color: var(--green); }
+
+  .file-list {
+    font-size: 0.80rem; color: var(--muted); margin-top: 12px;
+    padding: 10px 14px; background: #0d1117; border-radius: 6px;
+    font-family: 'SF Mono', 'Menlo', monospace; line-height: 1.9;
+  }
+
+  .commits { margin-top: 8px; }
+  .commit {
+    display: flex; gap: 12px; padding: 10px 0;
+    border-bottom: 1px solid var(--border); font-size: 0.88rem;
+  }
+  .commit-hash { font-family: 'SF Mono', monospace; color: var(--blue); font-size: 0.8rem; flex-shrink: 0; }
+  .commit-msg { font-weight: 500; }
+  .commit-meta { color: var(--muted); font-size: 0.78rem; }
+
+  .arch-diagram {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 20px; margin: 16px 0;
+    font-family: 'SF Mono', monospace; font-size: 0.80rem;
+    line-height: 1.9; white-space: pre; overflow-x: auto;
+  }
+
+  .footer {
+    text-align: center; margin-top: 40px; padding-top: 20px;
+    border-top: 1px solid var(--border); color: var(--muted); font-size: 0.82rem;
+  }
+</style>
+</head>
+<body>
+
+<h1><span>NotchBlock</span> 刘海时间块</h1>
+<p class="subtitle">macOS 时间块强制执行工具 · 开发进度看板 · 2026-06-04</p>
+
+<div class="stats">
+  <div class="stat-card"><div class="stat-value green">4/4</div><div class="stat-label">开发阶段</div></div>
+  <div class="stat-card"><div class="stat-value blue">15</div><div class="stat-label">Swift 源文件</div></div>
+  <div class="stat-card"><div class="stat-value purple">1,748</div><div class="stat-label">总代码行数</div></div>
+  <div class="stat-card"><div class="stat-value green">✅</div><div class="stat-label">构建状态</div></div>
+  <div class="stat-card"><div class="stat-value blue">4</div><div class="stat-label">Git 提交</div></div>
+</div>
+
+<h2>🏗️ 架构总览</h2>
+<div class="arch-diagram">
+NotchBlock/
+├── NotchBlock.xcodeproj/          # Xcode 项目 (脚本生成)
+├── generate_xcode_project.py      # PBX 生成器
+├── progress.html                  # 本看板
+│
+└── NotchBlock/
+    ├── NotchBlockApp.swift         # @main 入口点
+    ├── Info.plist                  # LSUIElement + 权限声明
+    │
+    ├── Models/
+    │   ├── TimeBlock.swift         # 核心数据模型 (Identifiable, Codable)
+    │   └── BlockStatus.swift       # 状态枚举 (.pending, .completed, .missed)
+    │
+    ├── Managers/
+    │   ├── TimeBlockStore.swift    # UserDefaults 持久化 + CRUD + 冲突检测
+    │   ├── NotchTracker.swift      # 刘海鼠标追踪 (0.5s 防抖 + 全屏检测)
+    │   ├── NotchPanelController.swift  # 下拉面板 NSPanel 管理
+    │   ├── OverlayWindowController.swift # 全屏强提醒遮罩 (CGShieldingWindowLevel)
+    │   └── BlockScheduler.swift    # 定时检测任务到期 → 触发遮罩
+    │
+    ├── Views/
+    │   ├── MainSchedulerView.swift # 今日排程主界面
+    │   ├── TimeBlockRowView.swift  # 单条任务行
+    │   ├── AddEditBlockView.swift  # 添加/编辑任务 (含冲突校验)
+    │   ├── NotchPanelView.swift    # 刘海下拉面板内容
+    │   └── OverlayView.swift       # 全屏强制提醒 UI
+    │
+    ├── Utilities/
+    │   ├── DateExtensions.swift    # 日期格式化扩展
+    │   └── LaunchManager.swift     # 开机启动 (SMAppService)
+    │
+    └── Resources/
+        └── Assets.xcassets/        # 资源目录
+</div>
+
+<h2>📋 迭代阶段</h2>
+
+<!-- Phase 1 -->
+<div class="phase">
+  <div class="phase-header">
+    <div class="phase-badge">1</div>
+    <div class="phase-title">第一阶段：基础骨架 & 数据持久化</div>
+    <div class="phase-status">✅ 已完成</div>
+  </div>
+  <div class="phase-body">
+    <h3>验收标准</h3>
+    <div class="ac-grid">
+      <div class="ac-item"><span class="ac-icon">✅</span> AC 1.1 时间冲突校验 — AddEditBlockView 实时检测 + Alert 阻止保存</div>
+      <div class="ac-item"><span class="ac-icon">✅</span> AC 1.2 状态栏常驻 — MenuBarExtra + LSUIElement + 开机启动</div>
+      <div class="ac-item"><span class="ac-icon">✅</span> AC 1.3 本地持久化 — UserDefaults JSON 编码，重启数据不丢失</div>
+    </div>
+    <div class="file-list">
+      Models/TimeBlock.swift · Models/BlockStatus.swift · Managers/TimeBlockStore.swift · NotchBlockApp.swift · Views/MainSchedulerView.swift · Views/TimeBlockRowView.swift · Views/AddEditBlockView.swift · Utilities/DateExtensions.swift
+    </div>
+  </div>
+</div>
+
+<!-- Phase 2 -->
+<div class="phase">
+  <div class="phase-header">
+    <div class="phase-badge">2</div>
+    <div class="phase-title">第二阶段：刘海悬停 & 下拉面板</div>
+    <div class="phase-status">✅ 已完成</div>
+  </div>
+  <div class="phase-body">
+    <h3>验收标准</h3>
+    <div class="ac-grid">
+      <div class="ac-item"><span class="ac-icon">✅</span> AC 2.1 防误触 — 0.5s 悬停防抖，NSTrackingArea + Timer</div>
+      <div class="ac-item"><span class="ac-icon">✅</span> AC 2.2 动态面板 — 当前任务倒计时 + 后续 2 个任务</div>
+      <div class="ac-item"><span class="ac-icon">✅</span> AC 2.3 自动隐藏 — 0.3s 离开防抖，鼠标移出后收回</div>
+      <div class="ac-item"><span class="ac-icon">✅</span> AC 2.4 全屏避让 — CGWindowList 检测全屏状态 → 禁用追踪</div>
+    </div>
+    <div class="file-list">
+      Managers/NotchTracker.swift · Managers/NotchPanelController.swift · Views/NotchPanelView.swift
+    </div>
+  </div>
+</div>
+
+<!-- Phase 3 -->
+<div class="phase">
+  <div class="phase-header">
+    <div class="phase-badge">3</div>
+    <div class="phase-title">第三阶段：全屏强提醒遮罩</div>
+    <div class="phase-status">✅ 已完成</div>
+  </div>
+  <div class="phase-body">
+    <h3>验收标准</h3>
+    <div class="ac-grid">
+      <div class="ac-item"><span class="ac-icon">✅</span> AC 3.1 全屏变暗 — 70% 不透明度 NSPanel，拦截所有底层点击</div>
+      <div class="ac-item"><span class="ac-icon">✅</span> AC 3.2 核心交互 — 任务名称 + [已完成] / [去调整计划]</div>
+      <div class="ac-item"><span class="ac-icon">✅</span> AC 3.3 超时惩罚 — 5 分钟无操作 → .missed + 本地通知</div>
+      <div class="ac-item"><span class="ac-icon">✅</span> AC 3.4 全屏穿透 — .fullScreenAuxiliary + CGShieldingWindowLevel</div>
+    </div>
+    <div class="file-list">
+      Managers/OverlayWindowController.swift · Managers/BlockScheduler.swift · Views/OverlayView.swift
+    </div>
+  </div>
+</div>
+
+<!-- Phase 4 -->
+<div class="phase">
+  <div class="phase-header">
+    <div class="phase-badge">4</div>
+    <div class="phase-title">第四阶段：打磨 & 边界处理</div>
+    <div class="phase-status">✅ 已完成</div>
+  </div>
+  <div class="phase-body">
+    <h3>验收标准</h3>
+    <div class="ac-grid">
+      <div class="ac-item"><span class="ac-icon">✅</span> 登录项注册 — SMAppService.mainApp 开机自动启动</div>
+      <div class="ac-item"><span class="ac-icon">✅</span> 屏幕变更处理 — 外接显示器插拔自动重建追踪窗口</div>
+      <div class="ac-item"><span class="ac-icon">✅</span> 全局动画 — 面板淡入淡出、遮罩弹性动画</div>
+      <div class="ac-item"><span class="ac-icon">✅</span> AC 4.1 历史补录 — 右键菜单修改状态、点击编辑时间</div>
+    </div>
+    <div class="file-list">
+      Utilities/LaunchManager.swift · NotchTracker 屏幕变更监听 · NotchBlockApp 菜单栏登录开关
+    </div>
+  </div>
+</div>
+
+<!-- Commits -->
+<h2>📝 Git 提交历史</h2>
+<div class="commits">
+  <div class="commit">
+    <div class="commit-hash">9ef23ef</div>
+    <div><div class="commit-msg">feat: Phase 1 — macOS menu bar app skeleton</div><div class="commit-meta">13 files · 1,616 lines · Data model + persistence + scheduler UI</div></div>
+  </div>
+  <div class="commit">
+    <div class="commit-hash">02226e9</div>
+    <div><div class="commit-msg">feat: Phase 2 — Notch hover detection + dropdown panel</div><div class="commit-meta">6 files changed · 0.5s debounce · fullscreen avoidance</div></div>
+  </div>
+  <div class="commit">
+    <div class="commit-hash">0aabeb2</div>
+    <div><div class="commit-msg">feat: Phase 3 — Hard-interrupt overlay + notifications</div><div class="commit-meta">7 files changed · CGShieldingWindowLevel · 5-min timeout</div></div>
+  </div>
+  <div class="commit">
+    <div class="commit-hash">9633c97</div>
+    <div><div class="commit-msg">feat: Phase 4 — Polish, login item, screen change handling</div><div class="commit-meta">5 files changed · SMAppService · display reconnect</div></div>
+  </div>
+</div>
+
+<!-- Tech Stack -->
+<h2>🛠️ 技术栈</h2>
+<div class="stats">
+  <div class="stat-card"><div class="stat-label">语言</div><div style="font-weight:600;margin-top:4px;">Swift 6.1</div></div>
+  <div class="stat-card"><div class="stat-label">UI 框架</div><div style="font-weight:600;margin-top:4px;">SwiftUI + AppKit</div></div>
+  <div class="stat-card"><div class="stat-label">最低系统</div><div style="font-weight:600;margin-top:4px;">macOS 14.0</div></div>
+  <div class="stat-card"><div class="stat-label">持久化</div><div style="font-weight:600;margin-top:4px;">UserDefaults / JSON</div></div>
+  <div class="stat-card"><div class="stat-label">关键 API</div><div style="font-weight:600;margin-top:4px;">CGShieldingWindowLevel</div></div>
+</div>
+
+<h3>系统权限需求</h3>
+<div class="ac-grid">
+  <div class="ac-item"><span class="ac-icon">📋</span> 辅助功能权限 (Accessibility) — 全屏检测</div>
+  <div class="ac-item"><span class="ac-icon">📋</span> 本地通知权限 (Notifications) — 超时提醒</div>
+</div>
+
+<div class="footer">
+  NotchBlock v1.0 · 构建于 2026-06-04 · Xcode 16.4 · Swift 6.1.2 · Apple Silicon (arm64)
+</div>
+
+</body>
+</html>
