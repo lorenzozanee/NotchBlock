@@ -46,6 +46,7 @@ final class NotchTracker: ObservableObject {
     func start() {
         createTrackingWindow()
         startFullscreenPolling()
+        observeScreenChanges()
     }
 
     func teardown() {
@@ -160,6 +161,20 @@ final class NotchTracker: ObservableObject {
         NSWorkspace.shared.notificationCenter
             .publisher(for: NSWorkspace.activeSpaceDidChangeNotification)
             .sink { [weak self] _ in self?.checkFullscreenState() }
+            .store(in: &cancellables)
+    }
+
+    private func observeScreenChanges() {
+        NotificationCenter.default
+            .publisher(for: NSApplication.didChangeScreenParametersNotification)
+            .sink { [weak self] _ in
+                // Recreate tracking window on the (possibly new) main screen
+                DispatchQueue.main.async {
+                    self?.trackingWindow?.close()
+                    self?.trackingWindow = nil
+                    self?.createTrackingWindow()
+                }
+            }
             .store(in: &cancellables)
     }
 

@@ -101,6 +101,15 @@ struct NotchBlockApp: App {
 
         Divider()
 
+        Toggle(isOn: Binding(
+            get: { LaunchManager.isLoginItemEnabled },
+            set: { enabled in try? LaunchManager.setLoginItemEnabled(enabled) }
+        )) {
+            Text("开机自动启动")
+        }
+
+        Divider()
+
         Button("退出 NotchBlock") {
             NSApplication.shared.terminate(nil)
         }
