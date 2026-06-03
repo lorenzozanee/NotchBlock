@@ -2,12 +2,24 @@ import SwiftUI
 
 @main
 struct NotchBlockApp: App {
-    @StateObject private var store = TimeBlockStore()
+    @StateObject private var store: TimeBlockStore
+    @StateObject private var notchTracker = NotchTracker()
+    private let panelController: NotchPanelController
+
+    init() {
+        let store = TimeBlockStore()
+        _store = StateObject(wrappedValue: store)
+        panelController = NotchPanelController(store: store)
+        panelController.bind(to: notchTracker)
+    }
 
     var body: some Scene {
         // Main scheduler window — opened from menu bar
         WindowGroup {
             MainSchedulerView(store: store)
+                .onAppear {
+                    notchTracker.start()
+                }
         }
         .windowResizability(.contentSize)
         .defaultSize(width: 460, height: 500)
