@@ -38,7 +38,15 @@ NotchBlock 是一款极简但**强制执行**的时间块（Time-Blocking）日�
 
 ### 下载 DMG
 
-从 [Releases](https://github.com/lorenzozanee/NotchBlock/releases) 页面下载最新 `NotchBlock-0.1.0.dmg`，拖入 Applications 文件夹即可。
+从 [Releases](https://github.com/lorenzozanee/NotchBlock/releases) 页面下载最新 `NotchBlock-*.dmg`。
+
+1. 双击挂载 DMG，拖入 `Applications` 文件夹
+2. **首次打开：右键 NotchBlock.app → 打开**（macOS Gatekeeper 要求）
+3. 应用启动后，菜单栏会出现日历图标 📅
+4. 排程窗口会自动弹出，同时发送一条欢迎通知
+5. 在 **系统设置 → 隐私与安全性 → 辅助功能** 中授权（全屏检测需要）
+
+> 💡 NotchBlock 是后台应用（无 Dock 图标），通过菜单栏图标访问。鼠标悬停 Mac 刘海可快速查看今日排程。
 
 ### 从源码构建
 

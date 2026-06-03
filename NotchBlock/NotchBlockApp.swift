@@ -1,4 +1,5 @@
 import SwiftUI
+import UserNotifications
 
 @main
 struct NotchBlockApp: App {
@@ -54,6 +55,7 @@ struct NotchBlockApp: App {
                     notchTracker.start()
                     scheduler.start()
                     overlayController.requestNotificationPermission()
+                    handleFirstLaunch()
                 }
         }
         .windowResizability(.contentSize)
@@ -133,6 +135,41 @@ struct NotchBlockApp: App {
         } else {
             Image(systemName: "calendar.badge.clock")
         }
+    }
+
+    // MARK: - First Launch
+
+    private let firstLaunchKey = "hasLaunchedBefore"
+
+    private func handleFirstLaunch() {
+        guard !UserDefaults.standard.bool(forKey: firstLaunchKey) else { return }
+        UserDefaults.standard.set(true, forKey: firstLaunchKey)
+
+        // Auto-show the scheduler window so users aren't confused by LSUIElement behavior
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            NSApp.activate(ignoringOtherApps: true)
+            for window in NSApp.windows where window.canBecomeKey {
+                window.makeKeyAndOrderFront(nil)
+                return
+            }
+        }
+
+        // Send a welcome notification to confirm the app is running
+        sendWelcomeNotification()
+    }
+
+    private func sendWelcomeNotification() {
+        let content = UNMutableNotificationContent()
+        content.title = "NotchBlock 已就绪"
+        content.body = "点击菜单栏日历图标查看排程。鼠标悬停在 Mac 刘海即可快速预览今日任务。"
+        content.sound = .default
+
+        let request = UNNotificationRequest(
+            identifier: "welcome-\(UUID().uuidString)",
+            content: content,
+            trigger: UNTimeIntervalNotificationTrigger(timeInterval: 2, repeats: false)
+        )
+        UNUserNotificationCenter.current().add(request)
     }
 
     // MARK: - Helpers

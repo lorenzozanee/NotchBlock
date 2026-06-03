@@ -33,7 +33,18 @@ if [ -z "$APP_PATH" ]; then
 fi
 echo "✅ App bundle: $APP_PATH"
 
-# 3. Create DMG
+# 3. Deep sign the app (fixes "no resources but signature indicates they must be present")
+echo "🔐 Signing app..."
+codesign --force --deep --sign - \
+  --options runtime \
+  --entitlements "$PROJECT_DIR/entitlements.plist" \
+  --timestamp=none \
+  "$APP_PATH" 2>&1
+
+echo "   Verifying signature..."
+codesign -dvvv "$APP_PATH" 2>&1 | grep -E "Signature|Info.plist|Sealed|TeamIdentifier" || true
+
+# 5. Create DMG
 echo "📦 Creating DMG..."
 rm -f "$DMG_PATH" "$DMG_TEMP"
 rm -rf "$STAGING"
