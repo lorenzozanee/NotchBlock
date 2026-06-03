@@ -1,0 +1,21 @@
+# Xcode
+*.xcuserdata
+*.xcworkspace/xcuserdata
+DerivedData/
+build/
+*.mode1v3
+*.mode2v3
+*.pbxuser
+!default.pbxuser
+*.perspectivev3
+!default.perspectivev3
+xcuserdata/
+**/.swiftpm/
+
+# macOS
+.DS_Store
+*.app
+
+# Python cache
+__pycache__/
+*.pyc

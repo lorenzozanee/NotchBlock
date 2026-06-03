@@ -1,0 +1,298 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		8383FAF30DE4657E69E8D635 /* NotchBlockApp.swift */ = {isa = PBXBuildFile; fileRef = 4E9C89A0D55E76588652C573 /* NotchBlockApp.swift */; };
+		7C0D1BF2DBBB36B46ABE816B /* TimeBlock.swift */ = {isa = PBXBuildFile; fileRef = B3BAC5908C53565931E8E5B3 /* TimeBlock.swift */; };
+		A24379B43F5B19475134E206 /* BlockStatus.swift */ = {isa = PBXBuildFile; fileRef = DEE5F99D1E5A2B5F5EFC906B /* BlockStatus.swift */; };
+		1827B5DFE545B020B2CC2A09 /* TimeBlockStore.swift */ = {isa = PBXBuildFile; fileRef = 78F1B4E40556969EB6AF68BD /* TimeBlockStore.swift */; };
+		7748E12741CC0ECAA0A64779 /* MainSchedulerView.swift */ = {isa = PBXBuildFile; fileRef = A55EEF8D85F866C0E80B9F55 /* MainSchedulerView.swift */; };
+		AE8F5429523A9CC02671E038 /* TimeBlockRowView.swift */ = {isa = PBXBuildFile; fileRef = C4DE7C509DDAEBD8CA1F84BD /* TimeBlockRowView.swift */; };
+		C889242EF1C522AB7E3C9BFE /* AddEditBlockView.swift */ = {isa = PBXBuildFile; fileRef = BEC23808B740FADBEF75200C /* AddEditBlockView.swift */; };
+		05E3945FA3BCF89E04CCA183 /* DateExtensions.swift */ = {isa = PBXBuildFile; fileRef = 5404929B171D255696DC34DE /* DateExtensions.swift */; };
+		5BFB3AC5498C548E2EAF1C43 /* Assets */ = {isa = PBXBuildFile; fileRef = 13161977E9C32ADDC42AA128 /* Assets */; };
+		73F477CA759EBC513EB6600C /* Info.plist */ = {isa = PBXBuildFile; fileRef = 51FB5475FF8535F7775454AF /* Info.plist */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		4E9C89A0D55E76588652C573 /* NotchBlockApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NotchBlockApp.swift"; sourceTree = "<group>"; };
+		B3BAC5908C53565931E8E5B3 /* TimeBlock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TimeBlock.swift"; sourceTree = "<group>"; };
+		DEE5F99D1E5A2B5F5EFC906B /* BlockStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BlockStatus.swift"; sourceTree = "<group>"; };
+		78F1B4E40556969EB6AF68BD /* TimeBlockStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TimeBlockStore.swift"; sourceTree = "<group>"; };
+		A55EEF8D85F866C0E80B9F55 /* MainSchedulerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MainSchedulerView.swift"; sourceTree = "<group>"; };
+		C4DE7C509DDAEBD8CA1F84BD /* TimeBlockRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TimeBlockRowView.swift"; sourceTree = "<group>"; };
+		BEC23808B740FADBEF75200C /* AddEditBlockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AddEditBlockView.swift"; sourceTree = "<group>"; };
+		5404929B171D255696DC34DE /* DateExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DateExtensions.swift"; sourceTree = "<group>"; };
+		13161977E9C32ADDC42AA128 /* Assets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Assets.xcassets"; sourceTree = "<group>"; };
+		51FB5475FF8535F7775454AF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info.plist"; sourceTree = "<group>"; };
+		A734CCEF338A717792A212FE /* NotchBlock.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NotchBlock.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		0035FE99EA2940F7FA633A58 = {
+			isa = PBXGroup;
+			children = (
+				4E9C89A0D55E76588652C573 /* NotchBlockApp.swift */,
+				51FB5475FF8535F7775454AF /* Info.plist */,
+				96C067823AA17A8A33B3B914 /* Models */,
+				E7FE79B9D1F502ED470EC763 /* Managers */,
+				DEF204281AD8F8546926DA48 /* Views */,
+				68BEC4239B5D4BD9543A58BE /* Utilities */,
+				0DA65B7BC11ABE80827019A5 /* Resources */,
+				5BAB63C60BF318DAB40A4F04 /* Products */,
+			);
+			path = "NotchBlock";
+			sourceTree = "<group>";
+		};
+		96C067823AA17A8A33B3B914 = {
+			isa = PBXGroup;
+			children = (
+				B3BAC5908C53565931E8E5B3 /* TimeBlock.swift */,
+				DEE5F99D1E5A2B5F5EFC906B /* BlockStatus.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		E7FE79B9D1F502ED470EC763 = {
+			isa = PBXGroup;
+			children = (
+				78F1B4E40556969EB6AF68BD /* TimeBlockStore.swift */,
+			);
+			path = Managers;
+			sourceTree = "<group>";
+		};
+		DEF204281AD8F8546926DA48 = {
+			isa = PBXGroup;
+			children = (
+				A55EEF8D85F866C0E80B9F55 /* MainSchedulerView.swift */,
+				C4DE7C509DDAEBD8CA1F84BD /* TimeBlockRowView.swift */,
+				BEC23808B740FADBEF75200C /* AddEditBlockView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		68BEC4239B5D4BD9543A58BE = {
+			isa = PBXGroup;
+			children = (
+				5404929B171D255696DC34DE /* DateExtensions.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		0DA65B7BC11ABE80827019A5 = {
+			isa = PBXGroup;
+			children = (
+				13161977E9C32ADDC42AA128 /* Assets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		5BAB63C60BF318DAB40A4F04 = {
+			isa = PBXGroup;
+			children = (
+				A734CCEF338A717792A212FE /* NotchBlock.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		9E440566B19C12EF065B2306 /* NotchBlock */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8DEF05A0BA55E2880AB4F655 /* Build configuration list for PBXNativeTarget "NotchBlock" */;
+			buildPhases = (
+				328A40146B5C098A0186E817 /* Sources */,
+				5F36FA50E478023048969193 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = NotchBlock;
+			productName = NotchBlock;
+			productReference = A734CCEF338A717792A212FE /* NotchBlock.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		EC553E7FBC3AD0AD7AB94BDF /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1640;
+				LastUpgradeCheck = 1640;
+				TargetAttributes = {
+					9E440566B19C12EF065B2306 = {
+						CreatedOnToolsVersion = 16.4;
+					};
+				};
+			};
+			buildConfigurationList = 4573FC33FC3A348A2692FE8A /* Build configuration list for PBXProject "NotchBlock" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = "zh-Hans";
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				"zh-Hans",
+			);
+			mainGroup = 0035FE99EA2940F7FA633A58;
+			productRefGroup = 5BAB63C60BF318DAB40A4F04 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				9E440566B19C12EF065B2306 /* NotchBlock */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		328A40146B5C098A0186E817 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8383FAF30DE4657E69E8D635 /* NotchBlockApp.swift in Sources */,
+				7C0D1BF2DBBB36B46ABE816B /* TimeBlock.swift in Sources */,
+				A24379B43F5B19475134E206 /* BlockStatus.swift in Sources */,
+				1827B5DFE545B020B2CC2A09 /* TimeBlockStore.swift in Sources */,
+				7748E12741CC0ECAA0A64779 /* MainSchedulerView.swift in Sources */,
+				AE8F5429523A9CC02671E038 /* TimeBlockRowView.swift in Sources */,
+				C889242EF1C522AB7E3C9BFE /* AddEditBlockView.swift in Sources */,
+				05E3945FA3BCF89E04CCA183 /* DateExtensions.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXResourcesBuildPhase section */
+		5F36FA50E478023048969193 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5BFB3AC5498C548E2EAF1C43 /* Assets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		517EF81E56C19545A32A2153 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = "NO";
+				CLANG_ANALYZER_NONNULL = "YES";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = "YES";
+				CLANG_ENABLE_OBJC_ARC = "YES";
+				COPY_PHASE_STRIP = "NO";
+				DEBUG_INFORMATION_FORMAT = "dwarf";
+				ENABLE_STRICT_OBJC_MSGSEND = "YES";
+				ENABLE_TESTABILITY = "YES";
+				GCC_DYNAMIC_NO_PIC = "NO";
+				GCC_OPTIMIZATION_LEVEL = "0";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)"
+				);
+				MTL_ENABLE_DEBUG_INFO = "INCLUDE_SOURCE";
+				ONLY_ACTIVE_ARCH = "YES";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		816545D985DA2F42528839E1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = "NO";
+				CLANG_ANALYZER_NONNULL = "YES";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = "YES";
+				CLANG_ENABLE_OBJC_ARC = "YES";
+				COPY_PHASE_STRIP = "NO";
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = "NO";
+				ENABLE_STRICT_OBJC_MSGSEND = "YES";
+				GCC_OPTIMIZATION_LEVEL = "s";
+				MTL_ENABLE_DEBUG_INFO = "NO";
+				SWIFT_COMPILATION_MODE = "wholemodule";
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		4C01C33E3CB41557980CDFEC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon";
+				CODE_SIGN_STYLE = "Automatic";
+				CURRENT_PROJECT_VERSION = "1";
+				ENABLE_HARDENED_RUNTIME = "YES";
+				GENERATE_INFOPLIST_FILE = "NO";
+				INFOPLIST_FILE = "NotchBlock/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks"
+				);
+				MACOSX_DEPLOYMENT_TARGET = "14.0";
+				MARKETING_VERSION = "1.0";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.notchblock.app";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = "YES";
+				SWIFT_VERSION = "5.0";
+			};
+			name = Debug;
+		};
+		93AC3E79582D8D62B1379770 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon";
+				CODE_SIGN_STYLE = "Automatic";
+				CURRENT_PROJECT_VERSION = "1";
+				ENABLE_HARDENED_RUNTIME = "YES";
+				GENERATE_INFOPLIST_FILE = "NO";
+				INFOPLIST_FILE = "NotchBlock/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks"
+				);
+				MACOSX_DEPLOYMENT_TARGET = "14.0";
+				MARKETING_VERSION = "1.0";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.notchblock.app";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = "YES";
+				SWIFT_VERSION = "5.0";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		4573FC33FC3A348A2692FE8A /* Build configuration list for PBXProject "NotchBlock" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				517EF81E56C19545A32A2153 /* Debug */,
+				816545D985DA2F42528839E1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		8DEF05A0BA55E2880AB4F655 /* Build configuration list for PBXNativeTarget "NotchBlock" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4C01C33E3CB41557980CDFEC /* Debug */,
+				93AC3E79582D8D62B1379770 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = EC553E7FBC3AD0AD7AB94BDF /* Project object */;
+}
