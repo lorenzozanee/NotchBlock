@@ -5,6 +5,18 @@ All notable changes to NotchBlock will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] — 2026-06-04
+
+### Fixed
+
+- **Code signing:** Deep ad-hoc signing with resource sealing. Info.plist now bound (25 entries), Sealed Resources v2. Fixes Gatekeeper "code has no resources but signature indicates they must be present" error.
+- **First-launch experience:** LSUIElement apps show no Dock icon — users thought the app crashed. Now auto-shows main scheduler window + sends welcome notification on first launch.
+- **README:** Added 5-step installation guide with Gatekeeper right-click workaround.
+
+### Known Limitations
+
+- Ad-hoc signed apps require right-click → Open on first launch. Full Gatekeeper pass requires Apple Developer Program ($99/year) + notarization.
+
 ## [0.1.0] — 2026-06-04
 
 ### Added
