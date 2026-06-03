@@ -26,5 +26,7 @@
 	<true/>
 	<key>NSAccessibilityUsageDescription</key>
 	<string>NotchBlock 需要辅助功能权限以检测全屏应用状态，在您全屏工作时自动暂停刘海悬停检测，避免干扰沉浸体验。</string>
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>NotchBlock 会在任务超时未响应时发送系统通知，帮助你及时了解任务状态。</string>
 </dict>
 </plist>

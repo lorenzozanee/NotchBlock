@@ -10,17 +10,20 @@ def make_id(seed: str) -> str:
 
 # ── Source files ─────────────────────────────────────────────────
 files = [
-    ("NotchBlockApp.swift",        "NotchBlock/NotchBlockApp.swift"),
-    ("TimeBlock.swift",            "NotchBlock/Models/TimeBlock.swift"),
-    ("BlockStatus.swift",          "NotchBlock/Models/BlockStatus.swift"),
-    ("TimeBlockStore.swift",       "NotchBlock/Managers/TimeBlockStore.swift"),
-    ("NotchTracker.swift",         "NotchBlock/Managers/NotchTracker.swift"),
-    ("NotchPanelController.swift", "NotchBlock/Managers/NotchPanelController.swift"),
-    ("MainSchedulerView.swift",    "NotchBlock/Views/MainSchedulerView.swift"),
-    ("TimeBlockRowView.swift",     "NotchBlock/Views/TimeBlockRowView.swift"),
-    ("AddEditBlockView.swift",     "NotchBlock/Views/AddEditBlockView.swift"),
-    ("NotchPanelView.swift",       "NotchBlock/Views/NotchPanelView.swift"),
-    ("DateExtensions.swift",       "NotchBlock/Utilities/DateExtensions.swift"),
+    ("NotchBlockApp.swift",         "NotchBlock/NotchBlockApp.swift"),
+    ("TimeBlock.swift",             "NotchBlock/Models/TimeBlock.swift"),
+    ("BlockStatus.swift",           "NotchBlock/Models/BlockStatus.swift"),
+    ("TimeBlockStore.swift",        "NotchBlock/Managers/TimeBlockStore.swift"),
+    ("NotchTracker.swift",          "NotchBlock/Managers/NotchTracker.swift"),
+    ("NotchPanelController.swift",  "NotchBlock/Managers/NotchPanelController.swift"),
+    ("OverlayWindowController.swift","NotchBlock/Managers/OverlayWindowController.swift"),
+    ("BlockScheduler.swift",        "NotchBlock/Managers/BlockScheduler.swift"),
+    ("MainSchedulerView.swift",     "NotchBlock/Views/MainSchedulerView.swift"),
+    ("TimeBlockRowView.swift",      "NotchBlock/Views/TimeBlockRowView.swift"),
+    ("AddEditBlockView.swift",      "NotchBlock/Views/AddEditBlockView.swift"),
+    ("NotchPanelView.swift",        "NotchBlock/Views/NotchPanelView.swift"),
+    ("OverlayView.swift",           "NotchBlock/Views/OverlayView.swift"),
+    ("DateExtensions.swift",        "NotchBlock/Utilities/DateExtensions.swift"),
 ]
 
 resources = [
@@ -111,7 +114,7 @@ def groups_section():
 \t\t{managers_grp} = {{
 \t\t\tisa = PBXGroup;
 \t\t\tchildren = (
-{children(['TimeBlockStore.swift', 'NotchTracker.swift', 'NotchPanelController.swift'])}
+{children(['TimeBlockStore.swift', 'NotchTracker.swift', 'NotchPanelController.swift', 'OverlayWindowController.swift', 'BlockScheduler.swift'])}
 \t\t\t);
 \t\t\tpath = Managers;
 \t\t\tsourceTree = "<group>";
@@ -119,7 +122,7 @@ def groups_section():
 \t\t{views_grp} = {{
 \t\t\tisa = PBXGroup;
 \t\t\tchildren = (
-{children(['MainSchedulerView.swift', 'TimeBlockRowView.swift', 'AddEditBlockView.swift', 'NotchPanelView.swift'])}
+{children(['MainSchedulerView.swift', 'TimeBlockRowView.swift', 'AddEditBlockView.swift', 'NotchPanelView.swift', 'OverlayView.swift'])}
 \t\t\t);
 \t\t\tpath = Views;
 \t\t\tsourceTree = "<group>";

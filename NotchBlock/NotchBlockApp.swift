@@ -5,12 +5,45 @@ struct NotchBlockApp: App {
     @StateObject private var store: TimeBlockStore
     @StateObject private var notchTracker = NotchTracker()
     private let panelController: NotchPanelController
+    private let overlayController: OverlayWindowController
+    private let scheduler: BlockScheduler
 
     init() {
+        // 1. Initialize all stored properties first
         let store = TimeBlockStore()
         _store = StateObject(wrappedValue: store)
-        panelController = NotchPanelController(store: store)
-        panelController.bind(to: notchTracker)
+
+        let panelCtrl = NotchPanelController(store: store)
+        let overlayCtrl = OverlayWindowController()
+        let sched = BlockScheduler(store: store)
+
+        panelController = panelCtrl
+        overlayController = overlayCtrl
+        scheduler = sched
+
+        // 2. Wire dependencies (self is now fully initialized)
+        panelCtrl.bind(to: notchTracker)
+
+        overlayCtrl.onMarkCompleted = { block in
+            let updated = TimeBlock(
+                id: block.id, title: block.title,
+                startTime: block.startTime, endTime: block.endTime,
+                status: .completed
+            )
+            store.update(updated)
+        }
+
+        overlayCtrl.onAdjustSchedule = {
+            NSApp.activate(ignoringOtherApps: true)
+            for window in NSApp.windows where window.canBecomeKey {
+                window.makeKeyAndOrderFront(nil)
+                return
+            }
+        }
+
+        sched.onBlockEnded = { [weak overlayCtrl] block in
+            overlayCtrl?.show(for: block)
+        }
     }
 
     var body: some Scene {
@@ -19,6 +52,8 @@ struct NotchBlockApp: App {
             MainSchedulerView(store: store)
                 .onAppear {
                     notchTracker.start()
+                    scheduler.start()
+                    overlayController.requestNotificationPermission()
                 }
         }
         .windowResizability(.contentSize)
