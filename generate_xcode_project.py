@@ -18,11 +18,13 @@ files = [
     ("NotchPanelController.swift",  "NotchBlock/Managers/NotchPanelController.swift"),
     ("OverlayWindowController.swift","NotchBlock/Managers/OverlayWindowController.swift"),
     ("BlockScheduler.swift",        "NotchBlock/Managers/BlockScheduler.swift"),
+    ("WeChatNotifier.swift",        "NotchBlock/Managers/WeChatNotifier.swift"),
     ("MainSchedulerView.swift",     "NotchBlock/Views/MainSchedulerView.swift"),
     ("TimeBlockRowView.swift",      "NotchBlock/Views/TimeBlockRowView.swift"),
     ("AddEditBlockView.swift",      "NotchBlock/Views/AddEditBlockView.swift"),
     ("NotchPanelView.swift",        "NotchBlock/Views/NotchPanelView.swift"),
     ("OverlayView.swift",           "NotchBlock/Views/OverlayView.swift"),
+    ("WeChatSettingsView.swift",    "NotchBlock/Views/WeChatSettingsView.swift"),
     ("DateExtensions.swift",        "NotchBlock/Utilities/DateExtensions.swift"),
     ("LaunchManager.swift",         "NotchBlock/Utilities/LaunchManager.swift"),
 ]
@@ -115,7 +117,7 @@ def groups_section():
 \t\t{managers_grp} = {{
 \t\t\tisa = PBXGroup;
 \t\t\tchildren = (
-{children(['TimeBlockStore.swift', 'NotchTracker.swift', 'NotchPanelController.swift', 'OverlayWindowController.swift', 'BlockScheduler.swift'])}
+{children(['TimeBlockStore.swift', 'NotchTracker.swift', 'NotchPanelController.swift', 'OverlayWindowController.swift', 'BlockScheduler.swift', 'WeChatNotifier.swift'])}
 \t\t\t);
 \t\t\tpath = Managers;
 \t\t\tsourceTree = "<group>";
@@ -123,7 +125,7 @@ def groups_section():
 \t\t{views_grp} = {{
 \t\t\tisa = PBXGroup;
 \t\t\tchildren = (
-{children(['MainSchedulerView.swift', 'TimeBlockRowView.swift', 'AddEditBlockView.swift', 'NotchPanelView.swift', 'OverlayView.swift'])}
+{children(['MainSchedulerView.swift', 'TimeBlockRowView.swift', 'AddEditBlockView.swift', 'NotchPanelView.swift', 'OverlayView.swift', 'WeChatSettingsView.swift'])}
 \t\t\t);
 \t\t\tpath = Views;
 \t\t\tsourceTree = "<group>";

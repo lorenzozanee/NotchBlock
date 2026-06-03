@@ -15,11 +15,13 @@
 		C9837466F3C579E56F3068BD /* NotchPanelController.swift */ = {isa = PBXBuildFile; fileRef = 8029C4F7FC61995D8B4CE4D6 /* NotchPanelController.swift */; };
 		15F109F398E0B965595113EF /* OverlayWindowController.swift */ = {isa = PBXBuildFile; fileRef = F9BBB253B58E64373130DCA9 /* OverlayWindowController.swift */; };
 		B3D75FCDC0095A4D0260E1C8 /* BlockScheduler.swift */ = {isa = PBXBuildFile; fileRef = 7350155EDA5DB8476A4BC699 /* BlockScheduler.swift */; };
+		3981874C54C3C832728AC378 /* WeChatNotifier.swift */ = {isa = PBXBuildFile; fileRef = B35A4B0B43F020AEC131D9B7 /* WeChatNotifier.swift */; };
 		7748E12741CC0ECAA0A64779 /* MainSchedulerView.swift */ = {isa = PBXBuildFile; fileRef = A55EEF8D85F866C0E80B9F55 /* MainSchedulerView.swift */; };
 		AE8F5429523A9CC02671E038 /* TimeBlockRowView.swift */ = {isa = PBXBuildFile; fileRef = C4DE7C509DDAEBD8CA1F84BD /* TimeBlockRowView.swift */; };
 		C889242EF1C522AB7E3C9BFE /* AddEditBlockView.swift */ = {isa = PBXBuildFile; fileRef = BEC23808B740FADBEF75200C /* AddEditBlockView.swift */; };
 		14843D6AB564C5778D082601 /* NotchPanelView.swift */ = {isa = PBXBuildFile; fileRef = D31A9727D47B0B4527FC8364 /* NotchPanelView.swift */; };
 		89F2702DDE773A6D09010A55 /* OverlayView.swift */ = {isa = PBXBuildFile; fileRef = 54740CBE29D9121A246F62CB /* OverlayView.swift */; };
+		F31594D6B0E467B646BEEA07 /* WeChatSettingsView.swift */ = {isa = PBXBuildFile; fileRef = 676DDB71144EFF5746229FD5 /* WeChatSettingsView.swift */; };
 		05E3945FA3BCF89E04CCA183 /* DateExtensions.swift */ = {isa = PBXBuildFile; fileRef = 5404929B171D255696DC34DE /* DateExtensions.swift */; };
 		6C2129AFAFFF8B7254C90DEB /* LaunchManager.swift */ = {isa = PBXBuildFile; fileRef = 7B82270FE5C20AF2B1F0E39E /* LaunchManager.swift */; };
 		5BFB3AC5498C548E2EAF1C43 /* Assets */ = {isa = PBXBuildFile; fileRef = 13161977E9C32ADDC42AA128 /* Assets */; };
@@ -35,11 +37,13 @@
 		8029C4F7FC61995D8B4CE4D6 /* NotchPanelController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NotchPanelController.swift"; sourceTree = "<group>"; };
 		F9BBB253B58E64373130DCA9 /* OverlayWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverlayWindowController.swift"; sourceTree = "<group>"; };
 		7350155EDA5DB8476A4BC699 /* BlockScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BlockScheduler.swift"; sourceTree = "<group>"; };
+		B35A4B0B43F020AEC131D9B7 /* WeChatNotifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WeChatNotifier.swift"; sourceTree = "<group>"; };
 		A55EEF8D85F866C0E80B9F55 /* MainSchedulerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MainSchedulerView.swift"; sourceTree = "<group>"; };
 		C4DE7C509DDAEBD8CA1F84BD /* TimeBlockRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TimeBlockRowView.swift"; sourceTree = "<group>"; };
 		BEC23808B740FADBEF75200C /* AddEditBlockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AddEditBlockView.swift"; sourceTree = "<group>"; };
 		D31A9727D47B0B4527FC8364 /* NotchPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NotchPanelView.swift"; sourceTree = "<group>"; };
 		54740CBE29D9121A246F62CB /* OverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverlayView.swift"; sourceTree = "<group>"; };
+		676DDB71144EFF5746229FD5 /* WeChatSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WeChatSettingsView.swift"; sourceTree = "<group>"; };
 		5404929B171D255696DC34DE /* DateExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DateExtensions.swift"; sourceTree = "<group>"; };
 		7B82270FE5C20AF2B1F0E39E /* LaunchManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LaunchManager.swift"; sourceTree = "<group>"; };
 		13161977E9C32ADDC42AA128 /* Assets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Assets.xcassets"; sourceTree = "<group>"; };
@@ -80,6 +84,7 @@
 				8029C4F7FC61995D8B4CE4D6 /* NotchPanelController.swift */,
 				F9BBB253B58E64373130DCA9 /* OverlayWindowController.swift */,
 				7350155EDA5DB8476A4BC699 /* BlockScheduler.swift */,
+				B35A4B0B43F020AEC131D9B7 /* WeChatNotifier.swift */,
 			);
 			path = Managers;
 			sourceTree = "<group>";
@@ -92,6 +97,7 @@
 				BEC23808B740FADBEF75200C /* AddEditBlockView.swift */,
 				D31A9727D47B0B4527FC8364 /* NotchPanelView.swift */,
 				54740CBE29D9121A246F62CB /* OverlayView.swift */,
+				676DDB71144EFF5746229FD5 /* WeChatSettingsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -187,11 +193,13 @@
 				C9837466F3C579E56F3068BD /* NotchPanelController.swift in Sources */,
 				15F109F398E0B965595113EF /* OverlayWindowController.swift in Sources */,
 				B3D75FCDC0095A4D0260E1C8 /* BlockScheduler.swift in Sources */,
+				3981874C54C3C832728AC378 /* WeChatNotifier.swift in Sources */,
 				7748E12741CC0ECAA0A64779 /* MainSchedulerView.swift in Sources */,
 				AE8F5429523A9CC02671E038 /* TimeBlockRowView.swift in Sources */,
 				C889242EF1C522AB7E3C9BFE /* AddEditBlockView.swift in Sources */,
 				14843D6AB564C5778D082601 /* NotchPanelView.swift in Sources */,
 				89F2702DDE773A6D09010A55 /* OverlayView.swift in Sources */,
+				F31594D6B0E467B646BEEA07 /* WeChatSettingsView.swift in Sources */,
 				05E3945FA3BCF89E04CCA183 /* DateExtensions.swift in Sources */,
 				6C2129AFAFFF8B7254C90DEB /* LaunchManager.swift in Sources */,
 			);

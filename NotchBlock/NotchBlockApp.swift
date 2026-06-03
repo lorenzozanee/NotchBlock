@@ -8,6 +8,8 @@ struct NotchBlockApp: App {
     private let panelController: NotchPanelController
     private let overlayController: OverlayWindowController
     private let scheduler: BlockScheduler
+    private let weChatNotifier: WeChatNotifier
+    @State private var showWeChatSettings = false
 
     init() {
         // 1. Initialize all stored properties first
@@ -17,13 +19,16 @@ struct NotchBlockApp: App {
         let panelCtrl = NotchPanelController(store: store)
         let overlayCtrl = OverlayWindowController()
         let sched = BlockScheduler(store: store)
+        let wechat = WeChatNotifier()
 
         panelController = panelCtrl
         overlayController = overlayCtrl
         scheduler = sched
+        weChatNotifier = wechat
 
         // 2. Wire dependencies (self is now fully initialized)
         panelCtrl.bind(to: notchTracker)
+        wechat.loadConfiguration()
 
         overlayCtrl.onMarkCompleted = { block in
             let updated = TimeBlock(
@@ -42,8 +47,9 @@ struct NotchBlockApp: App {
             }
         }
 
-        sched.onBlockEnded = { [weak overlayCtrl] block in
+        sched.onBlockEnded = { [weak overlayCtrl, weak wechat] block in
             overlayCtrl?.show(for: block)
+            wechat?.sendBlockEndedNotification(for: block)
         }
     }
 
@@ -56,6 +62,9 @@ struct NotchBlockApp: App {
                     scheduler.start()
                     overlayController.requestNotificationPermission()
                     handleFirstLaunch()
+                }
+                .sheet(isPresented: $showWeChatSettings) {
+                    WeChatSettingsView(notifier: weChatNotifier)
                 }
         }
         .windowResizability(.contentSize)
@@ -99,6 +108,12 @@ struct NotchBlockApp: App {
                 openMainWindow()
             }
             .disabled(true) // display-only
+        }
+
+        Divider()
+
+        Button("微信通知设置...") {
+            showWeChatSettings = true
         }
 
         Divider()
