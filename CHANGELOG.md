@@ -5,6 +5,16 @@ All notable changes to NotchBlock will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.10] — 2026-06-05
+
+### Fixed
+
+- **Notch hover completely unresponsive — three stacked bugs from v0.1.0:**
+  1. `notchTracker.start()` only called in `Window.onAppear` — LSUIElement apps don't auto-show windows, so tracking never started on any launch after the first. Moved to `App.init()`.
+  2. NSTrackingArea used `trackingView.bounds` as rect, which is `.zero` before layout. The tracking area covered 0×0 pixels. Now uses explicit `NSRect(0, 0, 180, 70)`.
+  3. macOS Window Server intercepts mouse events in the menu bar region (top ~37px). The 32px tracking window was entirely inside this zone. Extended to 70px so the bottom 33px reaches the application event zone.
+- `.inVisibleRect` → `.enabledDuringMouseDrag` in tracking area options to prevent system from silently disabling the area.
+
 ## [0.5.9] — 2026-06-04
 
 ### Fixed
