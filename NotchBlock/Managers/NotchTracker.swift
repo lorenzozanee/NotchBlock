@@ -86,7 +86,7 @@ final class NotchTracker: ObservableObject {
         window.isOpaque = false
         window.backgroundColor = .clear
         window.level = .statusBar
-        window.ignoresMouseEvents = true // click-through
+        window.ignoresMouseEvents = false // must receive mouse events for NSTrackingArea
         window.collectionBehavior = [.canJoinAllSpaces, .ignoresCycle]
         window.isMovable = false
 

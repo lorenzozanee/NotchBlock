@@ -3,6 +3,10 @@ import UserNotifications
 import AppKit
 import OSLog
 
+extension Notification.Name {
+    static let openMainWindow = Notification.Name("com.notchblock.openMainWindow")
+}
+
 @main
 struct NotchBlockApp: App {
     @StateObject private var store: TimeBlockStore
@@ -44,11 +48,7 @@ struct NotchBlockApp: App {
         overlayCtrl.onMarkMissed = { store.update($0.with(status: .missed)) }
 
         overlayCtrl.onAdjustSchedule = {
-            NSApp.activate(ignoringOtherApps: true)
-            for window in NSApp.windows where window.canBecomeKey {
-                window.makeKeyAndOrderFront(nil)
-                return
-            }
+            NotificationCenter.default.post(name: .openMainWindow, object: nil)
         }
 
         sched.onBlockEnded = { [weak overlayCtrl, weak wechat] block in
@@ -58,8 +58,8 @@ struct NotchBlockApp: App {
     }
 
     var body: some Scene {
-        // Main scheduler window — opened from menu bar
-        WindowGroup {
+        // Main scheduler window — explicitly managed via id for programmatic reopen
+        Window("排程面板", id: "main") {
             MainSchedulerView(store: store, stats: statsStore)
                 .onAppear {
                     notchTracker.start()
@@ -113,17 +113,13 @@ struct NotchBlockApp: App {
 
         Divider()
 
-        Button("打开排程面板") {
-            openMainWindow()
-        }
-        .keyboardShortcut("o")
+        OpenMainWindowButton()
+            .keyboardShortcut("o")
 
         Divider()
 
         if let next = store.upcomingBlocks(after: Date(), limit: 1).first {
-            Button("下一任务：\(next.title) (\(next.startTime.timeString))") {
-                openMainWindow()
-            }
+            Button("下一任务：\(next.title) (\(next.startTime.timeString))") {}
             .disabled(true) // display-only
         }
 
@@ -247,15 +243,26 @@ struct NotchBlockApp: App {
         quickAddTitle = ""
     }
 
-    private func openMainWindow() {
-        // Activate app and bring scheduler window to front
-        NSApp.activate(ignoringOtherApps: true)
-        // Find or open the main window
-        for window in NSApp.windows where window.title.contains("排程") || window.canBecomeKey {
-            window.makeKeyAndOrderFront(nil)
-            return
+}
+
+// MARK: - Open Main Window Button
+
+/// Wraps the menu bar "打开排程面板" button with access to `openWindow` environment.
+/// Uses `Window(id: "main")` scene to reopen the scheduler window after user closes it.
+private struct OpenMainWindowButton: View {
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        Button("打开排程面板") {
+            openMainWindow()
         }
-        // If no window found, open a new one via Window menu
-        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+        .onReceive(NotificationCenter.default.publisher(for: .openMainWindow)) { _ in
+            openMainWindow()
+        }
+    }
+
+    private func openMainWindow() {
+        openWindow(id: "main")
+        NSApp.activate(ignoringOtherApps: true)
     }
 }
