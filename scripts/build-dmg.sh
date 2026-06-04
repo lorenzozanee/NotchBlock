@@ -8,7 +8,8 @@ PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 BUILD_DIR="$PROJECT_DIR/build"
 ARCHIVE_PATH="$BUILD_DIR/NotchBlock.xcarchive"
 APP_PATH="$BUILD_DIR/NotchBlock.app"
-DMG_PATH="$BUILD_DIR/NotchBlock-0.1.0.dmg"
+VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.1.0")
+DMG_PATH="$BUILD_DIR/NotchBlock-${VERSION}.dmg"
 DMG_TEMP="$BUILD_DIR/NotchBlock-tmp.dmg"
 STAGING="$BUILD_DIR/staging"
 
