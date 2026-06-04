@@ -15,6 +15,7 @@ final class OverlayWindowController: ObservableObject {
     private var timeoutTimer: Timer?
 
     var onMarkCompleted: ((TimeBlock) -> Void)?
+    var onMarkMissed: ((TimeBlock) -> Void)?
     var onAdjustSchedule: (() -> Void)?
 
     // MARK: - Constants
@@ -24,9 +25,12 @@ final class OverlayWindowController: ObservableObject {
 
     // MARK: - Public API
 
+    private var overlayGeneration = 0
+
     func show(for block: TimeBlock) {
         dismiss()
-
+        overlayGeneration += 1
+        let gen = overlayGeneration
         currentBlock = block
         guard let screen = NSScreen.main else { return }
         let screenFrame = screen.frame
@@ -75,14 +79,16 @@ final class OverlayWindowController: ObservableObject {
         timeoutTimer?.invalidate()
         timeoutTimer = nil
         guard let panel = overlayPanel else { return }
+        let gen = overlayGeneration
         NSAnimationContext.runAnimationGroup({ ctx in
             ctx.duration = 0.25
             ctx.timingFunction = CAMediaTimingFunction(name: .easeIn)
             panel.animator().alphaValue = 0
         }, completionHandler: { [weak self] in
-            self?.overlayPanel?.orderOut(nil)
-            self?.overlayPanel = nil
-            self?.currentBlock = nil
+            guard let self, self.overlayGeneration == gen else { return }
+            self.overlayPanel?.orderOut(nil)
+            self.overlayPanel = nil
+            self.currentBlock = nil
         })
     }
 
@@ -117,8 +123,7 @@ final class OverlayWindowController: ObservableObject {
     }
 
     private func handleTimeout(block: TimeBlock) {
-        // The block is marked as missed by the caller via onMarkCompleted
-        onMarkCompleted?(block)
+        onMarkMissed?(block)
         dismiss()
         sendMissedNotification(for: block)
     }

@@ -24,14 +24,8 @@ final class BlockScheduler: ObservableObject {
         checkBlocks() // catch already-expired blocks immediately
     }
 
-    func stop() {
-        timer?.invalidate()
-        timer = nil
-    }
-
-    func markTriggered(_ block: TimeBlock) {
-        triggeredBlockIDs.insert(block.id)
-    }
+    func stop() { timer?.invalidate(); timer = nil }
+    deinit { stop() }
 
     // MARK: - Internal
 
@@ -59,14 +53,5 @@ final class BlockScheduler: ObservableObject {
         store.update(block.with(status: .completed))
     }
 
-    private func autoMarkMissed(_ block: TimeBlock) {
-        let updated = TimeBlock(
-            id: block.id,
-            title: block.title,
-            startTime: block.startTime,
-            endTime: block.endTime,
-            status: .missed
-        )
-        store.update(updated)
-    }
+    private func autoMarkMissed(_ block: TimeBlock) { store.update(block.with(status: .missed)) }
 }

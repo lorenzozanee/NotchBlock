@@ -36,14 +36,8 @@ struct NotchBlockApp: App {
         store.onDidChange = { [weak breaks] in breaks?.regenerateBreaks() }
         wechat.loadConfiguration()
 
-        overlayCtrl.onMarkCompleted = { block in
-            let updated = TimeBlock(
-                id: block.id, title: block.title,
-                startTime: block.startTime, endTime: block.endTime,
-                status: .completed
-            )
-            store.update(updated)
-        }
+        overlayCtrl.onMarkCompleted = { store.update($0.with(status: .completed)) }
+        overlayCtrl.onMarkMissed = { store.update($0.with(status: .missed)) }
 
         overlayCtrl.onAdjustSchedule = {
             NSApp.activate(ignoringOtherApps: true)
@@ -231,8 +225,12 @@ struct NotchBlockApp: App {
             let encoder = JSONEncoder()
             encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
             encoder.dateEncodingStrategy = .iso8601
-            guard let data = try? encoder.encode(self.store.blocks) else { return }
-            try? data.write(to: url)
+            do {
+                let data = try encoder.encode(self.store.blocks)
+                try data.write(to: url)
+            } catch {
+                storeLogger.error("Export failed: \(error.localizedDescription)")
+            }
         }
     }
 
