@@ -7,6 +7,7 @@ struct AddEditBlockView: View {
     var existingBlock: TimeBlock?
 
     @State private var title: String = ""
+    @State private var notes: String = ""
     @State private var startTime: Date = Date()
     @State private var endTime: Date = Date().addingTimeInterval(3600)
     @State private var showConflictAlert = false
@@ -58,6 +59,11 @@ struct AddEditBlockView: View {
         VStack(alignment: .leading, spacing: 6) {
             Text("任务名称").font(.caption).foregroundStyle(.secondary)
             TextField("例如：深度工作、代码审查", text: $title)
+                .textFieldStyle(.roundedBorder)
+        }
+        VStack(alignment: .leading, spacing: 6) {
+            Text("备注 (可选)").font(.caption).foregroundStyle(.secondary)
+            TextField("任务描述、目标、注意事项...", text: $notes)
                 .textFieldStyle(.roundedBorder)
         }
     }
@@ -126,6 +132,7 @@ struct AddEditBlockView: View {
     private func populateExisting() {
         guard let block = existingBlock else { return }
         title = block.title
+        notes = block.notes
         startTime = block.startTime
         endTime = block.endTime
     }
@@ -156,18 +163,16 @@ struct AddEditBlockView: View {
 
         if let existing = existingBlock {
             let updated = TimeBlock(
-                id: existing.id,
-                title: trimmedTitle,
-                startTime: startTime,
-                endTime: endTime,
-                status: existing.status
+                id: existing.id, title: trimmedTitle,
+                startTime: startTime, endTime: endTime,
+                status: existing.status, notes: notes.trimmingCharacters(in: .whitespaces)
             )
             store.update(updated)
         } else {
             let newBlock = TimeBlock(
                 title: trimmedTitle,
-                startTime: startTime,
-                endTime: endTime
+                startTime: startTime, endTime: endTime,
+                notes: notes.trimmingCharacters(in: .whitespaces)
             )
             store.add(newBlock)
         }

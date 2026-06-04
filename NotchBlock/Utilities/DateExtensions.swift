@@ -1,12 +1,13 @@
 import Foundation
 
+private let timeFmt: DateFormatter = { let f = DateFormatter(); f.dateFormat = "HH:mm"; return f }()
+private let weekdayFmt: DateFormatter = { let f = DateFormatter(); f.locale = Locale(identifier: "zh_CN"); f.dateFormat = "E"; return f }()
+private let dateFmt: DateFormatter = { let f = DateFormatter(); f.locale = Locale(identifier: "zh_CN"); f.dateFormat = "MM月dd日 EEEE"; return f }()
+
 extension Date {
-    /// Returns a short time string like "09:30"
-    var timeString: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm"
-        return formatter.string(from: self)
-    }
+    var timeString: String { timeFmt.string(from: self) }
+    var weekdayLabel: String { weekdayFmt.string(from: self) }
+    var chineseDateString: String { dateFmt.string(from: self) }
 
     /// Returns a relative description like "now", "in 15m", "5m ago"
     var relativeDescription: String {
