@@ -5,15 +5,26 @@ All notable changes to NotchBlock will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.5.10] — 2026-06-05
+## [0.6.0] — 2026-06-05
+
+### Changed
+
+- **NotchTracker architecture rewritten:** Replaced the NSTrackingArea-based approach with `NSEvent.mouseLocation` polling at 10 Hz. Root cause discovery: macOS Window Server permanently intercepts mouse events in the menu bar region (top ~37px) regardless of NSWindow level. No window level — not `.statusBar` (25), `.popUpMenu` (101), or `overlayWindow+1` (103) — can receive NSTrackingArea events in this zone. The new polling approach reads cursor position directly from Window Server shared memory, completely bypassing the event delivery pipeline. **This is the first release where notch hover detection actually works.**
 
 ### Fixed
 
-- **Notch hover completely unresponsive — three stacked bugs from v0.1.0:**
-  1. `notchTracker.start()` only called in `Window.onAppear` — LSUIElement apps don't auto-show windows, so tracking never started on any launch after the first. Moved to `App.init()`.
-  2. NSTrackingArea used `trackingView.bounds` as rect, which is `.zero` before layout. The tracking area covered 0×0 pixels. Now uses explicit `NSRect(0, 0, 180, 70)`.
-  3. macOS Window Server intercepts mouse events in the menu bar region (top ~37px). The 32px tracking window was entirely inside this zone. Extended to 70px so the bottom 33px reaches the application event zone.
-- `.inVisibleRect` → `.enabledDuringMouseDrag` in tracking area options to prevent system from silently disabling the area.
+- **Five stacked bugs from v0.1.0 preventing notch hover:**
+  1. `start()` only in `Window.onAppear` — LSUIElement apps don't auto-show windows
+  2. NSTrackingArea rect was `.zero` before layout → 0×0 tracking area
+  3. Tracking window entirely within menu bar event-interception zone
+  4. Timer scheduled in `init()` before the run loop started processing
+  5. `@StateObject` deallocated before deferred timer dispatch fired
+- **`isMainWindowOpen`** now auto-detects window state via `NSApp.windows` (computed property), no longer dependent on unreliable `onAppear`/`onDisappear`
+- **Main window** auto-closes at launch so notch tracking isn't permanently blocked
+
+### Verified
+
+- CGWarpMouseCursorPosition test: cursor held at trigger zone → `inZone=true` → 0.5s debounce → panel 320×149px appeared ✅
 
 ## [0.5.9] — 2026-06-04
 
