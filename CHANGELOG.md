@@ -5,6 +5,17 @@ All notable changes to NotchBlock will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.7] — 2026-06-04
+
+### Added
+
+- **ECC project-local harness:** Installed minimal Swift-focused ECC modules (swift-apple, workflow-quality, agents-core, commands-core, platform-configs). 257 files under `.claude/`. Includes swift-reviewer, swift-build-resolver agents, and swiftui-patterns/swift-concurrency-6-2 skills.
+- **Quarantine removal guidance:** Added `xattr -cr` instructions for local test distribution. `build-dmg.sh` now prints a post-build hint; README replaced right-click workaround with the definitive `xattr -cr` command.
+
+### Changed
+
+- **CLAUDE.md:** Optimized — condensed 7-phase workflow to bullet list, added test command, ECC agent reference table, architecture table. 98 → 73 lines (-25%).
+
 ## [0.5.6] — 2026-06-04
 
 ### Changed
