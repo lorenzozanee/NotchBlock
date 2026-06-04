@@ -109,13 +109,10 @@ struct MainSchedulerView: View {
                     isActive: block.id == activeBlock?.id
                 )
                 .contentShape(Rectangle())
-                .onTapGesture {
-                    editingBlock = block
-                }
-                .contextMenu {
-                    statusMenu(for: block)
-                }
+                .onTapGesture { editingBlock = block }
+                .contextMenu { statusMenu(for: block) }
             }
+            .animation(.smooth(duration: 0.3), value: todayBlocks.map(\.id))
         }
         .listStyle(.plain)
     }
@@ -152,7 +149,7 @@ struct MainSchedulerView: View {
             }
         }
         .padding(.horizontal, 20).padding(.vertical, 10)
-        .background(.bar)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8))
     }
 
     // MARK: - Context Menu

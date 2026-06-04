@@ -3,6 +3,7 @@ import SwiftUI
 struct TimeBlockRowView: View {
     let block: TimeBlock
     let isActive: Bool
+    @State private var isHovering = false
 
     var body: some View {
         HStack(spacing: 12) {
@@ -14,8 +15,12 @@ struct TimeBlockRowView: View {
         }
         .padding(.vertical, 6)
         .padding(.horizontal, 4)
-        .background(backgroundStyle)
+        .background(hoverBackground)
         .clipShape(RoundedRectangle(cornerRadius: 8))
+        .shadow(color: isActive ? .accentColor.opacity(0.15) : .clear, radius: 4, y: 1)
+        .onHover { hovering in
+            withAnimation(.snappy(duration: 0.15)) { isHovering = hovering }
+        }
         .animation(.easeInOut(duration: 0.25), value: block.status)
         .contentTransition(.opacity)
     }
@@ -66,9 +71,12 @@ struct TimeBlockRowView: View {
         }
     }
 
-    private var backgroundStyle: some ShapeStyle {
+    private var hoverBackground: some ShapeStyle {
         if isActive {
-            return AnyShapeStyle(Color.accentColor.opacity(0.08))
+            return AnyShapeStyle(Color.accentColor.opacity(0.12))
+        }
+        if isHovering {
+            return AnyShapeStyle(Color.secondary.opacity(0.06))
         }
         return AnyShapeStyle(Color.clear)
     }
