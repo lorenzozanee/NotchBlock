@@ -8,6 +8,7 @@ private let storeLogger = Logger(subsystem: "com.notchblock.app", category: "Sto
 /// Exposes @Published array for SwiftUI reactive binding.
 final class TimeBlockStore: ObservableObject {
     @Published var blocks: [TimeBlock] = []
+    var onDidChange: (() -> Void)?
 
     private let storageKey = "com.notchblock.timeblocks"
     private let encoder = JSONEncoder()
@@ -92,6 +93,7 @@ final class TimeBlockStore: ObservableObject {
         let capped = blocksCappedToWindow(days: 90)
         guard let data = try? encoder.encode(capped) else { return }
         UserDefaults.standard.set(data, forKey: storageKey)
+        onDidChange?()
     }
 
     private func load() {

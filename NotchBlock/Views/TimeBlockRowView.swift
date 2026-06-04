@@ -76,6 +76,7 @@ struct TimeBlockRowView: View {
     // MARK: - Styling
 
     private var statusColor: Color {
+        if block.isBreak { return .purple }
         switch block.status {
         case .pending:  return isActive ? .green : .orange
         case .completed: return .green

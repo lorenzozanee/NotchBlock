@@ -43,23 +43,22 @@ final class BlockScheduler: ObservableObject {
             guard block.status == .pending else { continue }
 
             if block.endTime <= now {
-                // Avoid re-triggering overlay for already-handled blocks
-                if !triggeredBlockIDs.contains(block.id) {
+                if !block.isBreak && !triggeredBlockIDs.contains(block.id) {
                     triggeredBlockIDs.insert(block.id)
                     DispatchQueue.main.async { [weak self] in
                         self?.onBlockEnded?(block)
                     }
                 }
-                // AC 6.0: auto-mark as missed even if overlay wasn't shown
-                // (e.g. app was closed when block ended). Overlay will update
-                // to .completed if user confirms, overriding this.
-                autoMarkMissed(block)
+                if block.isBreak { completeBreak(block) }
+                else { autoMarkMissed(block) }
             }
         }
     }
 
-    /// Marks a past pending block as .missed (AC 6.0 — runs continuously,
-    /// not dependent on main window being open).
+    private func completeBreak(_ block: TimeBlock) {
+        store.update(block.with(status: .completed))
+    }
+
     private func autoMarkMissed(_ block: TimeBlock) {
         let updated = TimeBlock(
             id: block.id,

@@ -7,6 +7,7 @@ struct TimeBlock: Identifiable, Codable, Equatable {
     var endTime: Date
     var status: BlockStatus
     var notes: String
+    var isBreak: Bool
 
     init(
         id: UUID = UUID(),
@@ -14,7 +15,8 @@ struct TimeBlock: Identifiable, Codable, Equatable {
         startTime: Date,
         endTime: Date,
         status: BlockStatus = .pending,
-        notes: String = ""
+        notes: String = "",
+        isBreak: Bool = false
     ) {
         self.id = id
         self.title = title
@@ -22,6 +24,7 @@ struct TimeBlock: Identifiable, Codable, Equatable {
         self.endTime = endTime
         self.status = status
         self.notes = notes
+        self.isBreak = isBreak
     }
 }
 
@@ -29,7 +32,7 @@ struct TimeBlock: Identifiable, Codable, Equatable {
 
 extension TimeBlock {
     func with(status: BlockStatus) -> TimeBlock {
-        TimeBlock(id: id, title: title, startTime: startTime, endTime: endTime, status: status, notes: notes)
+        TimeBlock(id: id, title: title, startTime: startTime, endTime: endTime, status: status, notes: notes, isBreak: isBreak)
     }
 }
 

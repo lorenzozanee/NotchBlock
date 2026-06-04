@@ -10,6 +10,7 @@ struct NotchBlockApp: App {
     private let overlayController: OverlayWindowController
     private let scheduler: BlockScheduler
     private let weChatNotifier: WeChatNotifier
+    private let breakScheduler: BreakScheduler
     @State private var showWeChatSettings = false
     @State private var quickAddTitle = ""
 
@@ -22,14 +23,17 @@ struct NotchBlockApp: App {
         let overlayCtrl = OverlayWindowController()
         let sched = BlockScheduler(store: store)
         let wechat = WeChatNotifier()
+        let breaks = BreakScheduler(store: store)
 
         panelController = panelCtrl
         overlayController = overlayCtrl
         scheduler = sched
         weChatNotifier = wechat
+        breakScheduler = breaks
 
         // 2. Wire dependencies (self is now fully initialized)
         panelCtrl.bind(to: notchTracker)
+        store.onDidChange = { [weak breaks] in breaks?.regenerateBreaks() }
         wechat.loadConfiguration()
 
         overlayCtrl.onMarkCompleted = { block in

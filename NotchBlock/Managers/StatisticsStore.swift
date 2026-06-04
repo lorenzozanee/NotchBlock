@@ -5,23 +5,22 @@ final class StatisticsStore: ObservableObject {
     private let store: TimeBlockStore
     private let calendar = Calendar.current
 
-    init(store: TimeBlockStore) {
-        self.store = store
-    }
+    init(store: TimeBlockStore) { self.store = store }
 
-    // MARK: - Today
+    private var userBlocks: [TimeBlock] { store.blocks.filter { !$0.isBreak } }
+    private var todayUserBlocks: [TimeBlock] { store.todayBlocks().filter { !$0.isBreak } }
 
-    var todayTotal: Int { store.todayBlocks().count }
-    var todayCompleted: Int { store.todayBlocks().filter { $0.status == .completed }.count }
+    var todayTotal: Int { todayUserBlocks.count }
+    var todayCompleted: Int { todayUserBlocks.filter { $0.status == .completed }.count }
     var todayCompletionRate: Double {
         guard todayTotal > 0 else { return 0 }
         return Double(todayCompleted) / Double(todayTotal)
     }
     var todayFocusTime: TimeInterval {
-        store.todayBlocks().filter { $0.status == .completed }.map(\.duration).reduce(0, +)
+        todayUserBlocks.filter { $0.status == .completed }.map(\.duration).reduce(0, +)
     }
-    var todayMissed: Int { store.todayBlocks().filter { $0.status == .missed }.count }
-    var todayRemaining: Int { store.todayBlocks().filter { $0.status == .pending }.count }
+    var todayMissed: Int { todayUserBlocks.filter { $0.status == .missed }.count }
+    var todayRemaining: Int { todayUserBlocks.filter { $0.status == .pending }.count }
 
     // MARK: - This Week
 
