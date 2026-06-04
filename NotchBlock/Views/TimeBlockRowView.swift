@@ -16,6 +16,8 @@ struct TimeBlockRowView: View {
         .padding(.horizontal, 4)
         .background(backgroundStyle)
         .clipShape(RoundedRectangle(cornerRadius: 8))
+        .animation(.easeInOut(duration: 0.25), value: block.status)
+        .contentTransition(.opacity)
     }
 
     // MARK: - Subviews
