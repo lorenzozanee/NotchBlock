@@ -18,6 +18,15 @@ final class OverlayWindowController: ObservableObject {
     var onMarkMissed: ((TimeBlock) -> Void)?
     var onAdjustSchedule: (() -> Void)?
 
+    // MARK: - Sound
+
+    static let availableSounds = ["Glass", "Ping", "Pop", "Basso", "Funk", "Submarine"]
+
+    static func playAlertSound() {
+        let name = UserDefaults.standard.string(forKey: "alertSoundName") ?? "Glass"
+        NSSound(named: name)?.play()
+    }
+
     // MARK: - Constants
 
     private static let overlayOpacity: CGFloat = 0.7       // AC 3.1
@@ -62,7 +71,7 @@ final class OverlayWindowController: ObservableObject {
         panel.contentView = hostingView
 
         overlayPanel = panel
-        (NSSound(named: "Glass") ?? NSSound(named: "Ping"))?.play()
+        OverlayWindowController.playAlertSound()
         panel.alphaValue = 0
         panel.orderFrontRegardless()
 
@@ -129,6 +138,21 @@ final class OverlayWindowController: ObservableObject {
     }
 
     // MARK: - Notifications
+
+    // MARK: - Daily Summary
+
+    func scheduleDailySummary(stats: StatisticsStore) {
+        let content = UNMutableNotificationContent()
+        content.title = "今日 NotchBlock 统计"
+        content.body = "完成 \(stats.todayCompleted)/\(stats.todayTotal) 项任务，专注 \(stats.todayFocusTime.compactDuration)"
+        content.sound = .default
+        let trigger = UNCalendarNotificationTrigger(
+            dateMatching: DateComponents(hour: 21, minute: 0), repeats: true
+        )
+        UNUserNotificationCenter.current().add(
+            UNNotificationRequest(identifier: "daily-summary", content: content, trigger: trigger)
+        )
+    }
 
     func requestNotificationPermission() {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in

@@ -75,6 +75,7 @@ struct NotchBlockApp: App {
         notchTracker.start()
         scheduler.start()
         overlayController.requestNotificationPermission()
+        overlayController.scheduleDailySummary(stats: stats)
 
         // 4. SwiftUI Window scenes show by default — hide the main window after
         //    launch so notch tracking isn't permanently blocked. The window
@@ -209,6 +210,23 @@ struct NotchBlockApp: App {
             set: { enabled in try? LaunchManager.setLoginItemEnabled(enabled) }
         )) {
             Text("开机自动启动")
+        }
+
+        Divider()
+
+        Menu("提醒声音") {
+            ForEach(OverlayWindowController.availableSounds, id: \.self) { name in
+                Button {
+                    UserDefaults.standard.set(name, forKey: "alertSoundName")
+                } label: {
+                    HStack {
+                        Text(name)
+                        if (UserDefaults.standard.string(forKey: "alertSoundName") ?? "Glass") == name {
+                            Image(systemName: "checkmark")
+                        }
+                    }
+                }
+            }
         }
 
         Divider()
