@@ -99,11 +99,11 @@
 <p class="subtitle">macOS 时间块强制执行工具 · 开发进度看板 · 2026-06-04 · <strong>v0.5.10</strong></p>
 
 <div class="stats">
-  <div class="stat-card"><div class="stat-value green">4/4</div><div class="stat-label">开发阶段</div></div>
+  <div class="stat-card"><div class="stat-value green">5/6</div><div class="stat-label">开发阶段</div></div>
   <div class="stat-card"><div class="stat-value blue">20</div><div class="stat-label">Swift 源文件</div></div>
   <div class="stat-card"><div class="stat-value purple">2,588</div><div class="stat-label">总代码行数</div></div>
   <div class="stat-card"><div class="stat-value green">✅</div><div class="stat-label">构建状态</div></div>
-  <div class="stat-card"><div class="stat-value blue">48</div><div class="stat-label">Git 提交</div></div>
+  <div class="stat-card"><div class="stat-value blue">49</div><div class="stat-label">Git 提交</div></div>
 </div>
 
 <h2>🏗️ 架构总览</h2>
@@ -252,9 +252,43 @@ NotchBlock/
   </div>
 </div>
 
+<!-- Phase 6 -->
+<div class="phase">
+  <div class="phase-header">
+    <div class="phase-badge">6</div>
+    <div class="phase-title">第六阶段：NotchTracker 架构重写 — NSTrackingArea → 鼠标位置轮询</div>
+    <div class="phase-status">🔄 待物理测试</div>
+  </div>
+  <div class="phase-body">
+    <h3>根本问题</h3>
+    <p style="color:var(--muted);font-size:0.88rem;margin-bottom:12px;">
+      NSTrackingArea 在菜单栏/刘海区域（顶部 ~37px）<strong>根本上无法工作</strong>。macOS Window Server 无论窗口层级高低（.statusBar=25, .popUpMenu=101, overlay+1=103）都会拦截该区域的鼠标事件，将其路由给系统菜单栏而非应用窗口。
+    </p>
+    <h3>新方案</h3>
+    <p style="color:var(--muted);font-size:0.88rem;margin-bottom:12px;">
+      使用 <code>NSEvent.mouseLocation</code> 以 10 Hz 轮询全局鼠标位置。该 API 直接从 Window Server 共享内存读取光标坐标，<strong>完全绕过事件分发管线</strong>。触发区域：屏幕顶部 5px × 中心 180px 宽。
+    </p>
+    <h3>验收标准</h3>
+    <div class="ac-grid">
+      <div class="ac-item"><span class="ac-icon">⬜</span> AC 6.1 触发区域 — 顶部 5px、中心 180px 宽，需故意将光标推到屏幕顶端</div>
+      <div class="ac-item"><span class="ac-icon">⬜</span> AC 6.2 悬停防抖 — 在触发区停留 ≥0.5s → 面板显示</div>
+      <div class="ac-item"><span class="ac-icon">⬜</span> AC 6.3 离开隐藏 — 离开触发区 + 离开面板 &gt;0.5s → 面板消失</div>
+      <div class="ac-item"><span class="ac-icon">⬜</span> AC 6.4 全屏避让 — 全屏检测 + 主窗口互斥保持不变</div>
+      <div class="ac-item"><span class="ac-icon">⬜</span> AC 6.5 无刘海 Mac — 自动检测 safeAreaInsets.top &gt; 0，非刘海屏不轮询</div>
+    </div>
+    <div class="file-list">
+      Managers/NotchTracker.swift (76 行增, 110 行删 · 完全重写)
+    </div>
+  </div>
+</div>
+
 <!-- Commits -->
 <h2>📝 Git 提交历史</h2>
 <div class="commits">
+  <div class="commit">
+    <div class="commit-hash">fd47e4c</div>
+    <div><div class="commit-msg">feat: replace NSTrackingArea with NSEvent.mouseLocation polling</div><div class="commit-meta">v0.5.10 · NotchTracker rewritten · 10 Hz cursor polling · zero NSTrackingArea</div></div>
+  </div>
   <div class="commit">
     <div class="commit-hash">63f5a2c</div>
     <div><div class="commit-msg">fix: notch tracking — three stacked bugs from v0.1.0</div><div class="commit-meta">v0.5.10 · startup timing + zero tracking rect + menu bar event zone</div></div>
