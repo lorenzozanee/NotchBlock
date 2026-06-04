@@ -43,8 +43,8 @@ final class NotchPanelController {
         panel.orderFront(nil)
 
         NSAnimationContext.runAnimationGroup { ctx in
-            ctx.duration = 0.35
-            ctx.timingFunction = CAMediaTimingFunction(controlPoints: 0.2, 0.8, 0.2, 1.0)
+            ctx.duration = 0.4
+            ctx.timingFunction = CAMediaTimingFunction(controlPoints: 0.1, 0.9, 0.2, 1.0)
             panel.animator().alphaValue = 1.0
         }
     }

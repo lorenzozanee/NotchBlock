@@ -58,7 +58,8 @@ struct NotchPanelView: View {
                     lineWidth: 0.5
                 )
         )
-        .shadow(color: .black.opacity(0.25), radius: 30, y: 10)
+        .shadow(color: .black.opacity(0.3), radius: 40, y: 12)
+        .shadow(color: .black.opacity(0.15), radius: 12, y: 4)
         .onReceive(tick) { _ in
             now = Date()
         }
@@ -190,8 +191,24 @@ struct NotchPanelView: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 6)
+            .background(rowHoverColor(block))
+            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .scaleEffect(rowHoverScale(block))
         }
         .buttonStyle(.plain)
+        .onHover { hovering in
+            withAnimation(.snappy(duration: 0.15)) { hoveredBlockID = hovering ? block.id : nil }
+        }
+    }
+
+    @State private var hoveredBlockID: UUID?
+
+    private func rowHoverColor(_ block: TimeBlock) -> Color {
+        hoveredBlockID == block.id ? Color.primary.opacity(0.05) : .clear
+    }
+
+    private func rowHoverScale(_ block: TimeBlock) -> CGFloat {
+        hoveredBlockID == block.id ? 1.02 : 1.0
     }
 
     // MARK: - Empty State
@@ -221,7 +238,7 @@ struct NotchPanelView: View {
             HStack {
                 Image(systemName: "plus.circle.fill")
                     .font(.subheadline)
-                    .foregroundStyle(.green)
+                    .foregroundStyle(BrandColors.accent)
                 Text("添加任务...")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
