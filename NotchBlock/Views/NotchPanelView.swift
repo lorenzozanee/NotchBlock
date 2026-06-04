@@ -24,13 +24,19 @@ struct NotchPanelView: View {
         .frame(width: 320)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(.regularMaterial)
-                .shadow(color: .black.opacity(0.15), radius: 16, y: 4)
+                .fill(.ultraThinMaterial)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 16)
-                .strokeBorder(.quaternary, lineWidth: 0.5)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [.white.opacity(0.15), .white.opacity(0.03)],
+                        startPoint: .top, endPoint: .bottom
+                    ),
+                    lineWidth: 0.5
+                )
         )
+        .shadow(color: .black.opacity(0.2), radius: 24, y: 6)
         .onReceive(timer) { _ in now = Date() }
     }
 
