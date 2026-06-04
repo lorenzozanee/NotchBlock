@@ -7,6 +7,18 @@ struct TimeBlockRowView: View {
 
     var body: some View {
         HStack(spacing: 12) {
+            // Timeline dot + connector
+            VStack(spacing: 0) {
+                Circle()
+                    .fill(statusColor)
+                    .frame(width: isActive ? 10 : 8, height: isActive ? 10 : 8)
+                    .animation(.easeInOut(duration: 0.3), value: isActive)
+                Rectangle()
+                    .fill(Color.secondary.opacity(0.15))
+                    .frame(width: 1.5)
+            }
+            .frame(width: 16)
+
             statusIndicator
             timeColumn
             Spacer()
@@ -31,7 +43,7 @@ struct TimeBlockRowView: View {
         Image(systemName: block.status.systemImage)
             .font(.title3)
             .foregroundStyle(statusColor)
-            .frame(width: 24)
+            .frame(width: 20)
     }
 
     private var timeColumn: some View {

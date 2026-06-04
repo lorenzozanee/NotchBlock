@@ -82,24 +82,6 @@ ALWAYS use agents for:
 - Before compact: commit all work, update progress.html
 - After compact: resume from the last committed state
 
-## Project Structure
-
-```
-NotchBlock/
-├── Models/               TimeBlock · BlockStatus
-├── Managers/             TimeBlockStore · NotchTracker · NotchPanelController
-│                         OverlayWindowController · BlockScheduler
-├── Views/                MainSchedulerView · TimeBlockRowView · AddEditBlockView
-│                         NotchPanelView · OverlayView
-├── Utilities/            DateExtensions · LaunchManager
-├── Resources/            Assets.xcassets (AppIcon)
-├── scripts/              build-dmg.sh
-├── CLAUDE.md             This file
-├── progress.html         Development dashboard
-├── CHANGELOG.md          Release history
-└── entitlements.plist    Code signing entitlements
-```
-
 ## Adding Files
 
 1. Create `.swift` file in the appropriate subdirectory
