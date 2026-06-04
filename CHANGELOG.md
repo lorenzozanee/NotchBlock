@@ -5,6 +5,12 @@ All notable changes to NotchBlock will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.9] — 2026-06-04
+
+### Fixed
+
+- **Notch tracking never starts on cold launch:** `notchTracker.start()` was called only in `Window.onAppear`. Since NotchBlock is an `LSUIElement` app (no Dock icon), the main window doesn't auto-show — so the tracking window at the notch was never created on any launch after the first. Moved `start()`, `scheduler.start()`, and `requestNotificationPermission()` to `NotchBlockApp.init()` so all background services begin immediately at app launch.
+
 ## [0.5.8] — 2026-06-04
 
 ### Added
