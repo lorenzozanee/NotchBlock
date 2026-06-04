@@ -220,18 +220,25 @@ struct MainSchedulerView: View {
         store.update(updated)
     }
 
+    @State private var keyMonitor: Any?
+
     private func setupKeyboardShortcuts() {
-        NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-            if event.modifierFlags.contains(.command) {
-                switch event.charactersIgnoringModifiers {
-                case "n":
-                    showAddSheet = true
-                    return nil
-                default:
-                    break
-                }
+        guard keyMonitor == nil else { return }
+        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard let self else { return event }
+            if event.modifierFlags.contains(.command),
+               event.charactersIgnoringModifiers == "n" {
+                self.showAddSheet = true
+                return nil
             }
             return event
+        }
+    }
+
+    private func removeKeyboardShortcuts() {
+        if let monitor = keyMonitor {
+            NSEvent.removeMonitor(monitor)
+            keyMonitor = nil
         }
     }
 

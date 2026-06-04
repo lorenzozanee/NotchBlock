@@ -1,5 +1,8 @@
 import Foundation
 import Combine
+import OSLog
+
+private let storeLogger = Logger(subsystem: "com.notchblock.app", category: "Store")
 
 /// Persists TimeBlock array to UserDefaults as ISO8601 JSON.
 /// Exposes @Published array for SwiftUI reactive binding.

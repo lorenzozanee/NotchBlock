@@ -22,6 +22,14 @@ struct TimeBlock: Identifiable, Codable, Equatable {
     }
 }
 
+// MARK: - Factory
+
+extension TimeBlock {
+    func with(status: BlockStatus) -> TimeBlock {
+        TimeBlock(id: id, title: title, startTime: startTime, endTime: endTime, status: status)
+    }
+}
+
 // MARK: - Computed Properties
 
 extension TimeBlock {

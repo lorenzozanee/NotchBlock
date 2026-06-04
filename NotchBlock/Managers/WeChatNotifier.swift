@@ -82,7 +82,8 @@ final class WeChatNotifier: ObservableObject {
               !appToken.isEmpty, !uid.isEmpty
         else { return }
 
-        var request = URLRequest(url: URL(string: "https://wxpusher.zjiecode.com/api/send/message")!)
+        guard let url = URL(string: "https://wxpusher.zjiecode.com/api/send/message") else { return }
+        var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         let body: [String: Any] = [
@@ -130,7 +131,7 @@ final class WeChatNotifier: ObservableObject {
         let addQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: key,
-            kSecValueData as String: value.data(using: .utf8)!
+            kSecValueData as String: Data(value.utf8)
         ]
         return SecItemAdd(addQuery as CFDictionary, nil) == errSecSuccess
     }
