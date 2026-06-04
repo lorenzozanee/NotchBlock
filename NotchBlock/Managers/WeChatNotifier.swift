@@ -1,5 +1,8 @@
 import Foundation
 import Security
+import OSLog
+
+private let wechatLogger = Logger(subsystem: "com.notchblock.app", category: "WeChat")
 
 /// Sends time-block-end notifications via WeChat using WxPusher or Enterprise WeChat Webhook.
 ///
@@ -90,7 +93,7 @@ final class WeChatNotifier: ObservableObject {
 
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error {
-                print("[NotchBlock WeChat] WxPusher failed: \(error.localizedDescription)")
+                wechatLogger.error("WxPusher send failed: \(error.localizedDescription)")
             }
         }.resume()
     }
@@ -110,7 +113,7 @@ final class WeChatNotifier: ObservableObject {
 
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error {
-                print("[NotchBlock WeChat] WeCom failed: \(error.localizedDescription)")
+                wechatLogger.error("WeCom send failed: \(error.localizedDescription)")
             }
         }.resume()
     }

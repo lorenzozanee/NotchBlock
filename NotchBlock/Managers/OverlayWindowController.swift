@@ -1,6 +1,9 @@
 import Cocoa
 import SwiftUI
 import UserNotifications
+import OSLog
+
+private let overlayLogger = Logger(subsystem: "com.notchblock.app", category: "Overlay")
 
 /// Manages the hard-interrupt fullscreen overlay that appears when a time block ends.
 ///
@@ -125,7 +128,7 @@ final class OverlayWindowController: ObservableObject {
     func requestNotificationPermission() {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
             if let error {
-                print("[NotchBlock] Notification permission error: \(error.localizedDescription)")
+                overlayLogger.error("Notification permission: \(error.localizedDescription)")
             }
         }
     }
