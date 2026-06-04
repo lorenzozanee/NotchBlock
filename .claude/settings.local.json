@@ -1,5 +1,42 @@
 {
   "effortLevel": "high",
+  "permissions": {
+    "allow": [
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep",
+      "Bash(swift:*)",
+      "Bash(xcodebuild:*)",
+      "Bash(python3:generate_xcode_project.py)",
+      "Bash(git:*)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(node:*)",
+      "Bash(mgrep:*)",
+      "Bash(open:*)",
+      "Bash(bash:scripts/build-dmg.sh)",
+      "Bash(mkdir:*)",
+      "Bash(rm:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)",
+      "Bash(wc:* | head:* | tail:*)"
+    ],
+    "deny": [
+      "Bash(curl:*)",
+      "Bash(wget:*)",
+      "Bash(chmod:*)",
+      "Bash(sudo:*)",
+      "Bash(ssh:*)",
+      "Bash(eval:*)",
+      "Bash(rm -rf:*)",
+      "Bash(rm -r *)",
+      "Bash(rm -rf *)"
+    ]
+  },
   "env": {
     "ECC_DISABLED_HOOKS": "pre:read:doubao-vision"
   },
