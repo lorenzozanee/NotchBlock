@@ -26,6 +26,22 @@ struct TimeBlock: Identifiable, Codable, Equatable {
         self.notes = notes
         self.isBreak = isBreak
     }
+
+    enum CodingKeys: String, CodingKey {
+        case id, title, startTime, endTime, status, notes, isBreak
+    }
+
+    // Custom Decodable for backward compat: old data lacks notes/isBreak fields
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id)
+        title = try c.decode(String.self, forKey: .title)
+        startTime = try c.decode(Date.self, forKey: .startTime)
+        endTime = try c.decode(Date.self, forKey: .endTime)
+        status = try c.decode(BlockStatus.self, forKey: .status)
+        notes = (try? c.decode(String.self, forKey: .notes)) ?? ""
+        isBreak = (try? c.decode(Bool.self, forKey: .isBreak)) ?? false
+    }
 }
 
 // MARK: - Factory
