@@ -44,7 +44,8 @@ final class TimeBlockStore: ObservableObject {
 
     func delete(at offsets: IndexSet) {
         var updated = blocks
-        updated.remove(atOffsets: offsets)
+        let valid = offsets.filter { blocks.indices.contains($0) }
+        updated.remove(atOffsets: IndexSet(valid))
         blocks = updated
         save()
     }

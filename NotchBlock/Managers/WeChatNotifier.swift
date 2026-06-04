@@ -21,7 +21,7 @@ final class WeChatNotifier: ObservableObject {
 
     // MARK: - Keychain Keys
 
-    private enum KeychainKey {
+    enum KeychainKey {
         static let wxpusherToken = "com.notchblock.wxpusher.appToken"
         static let wxpusherUID = "com.notchblock.wxpusher.uid"
         static let wecomWebhook = "com.notchblock.wecom.webhook"

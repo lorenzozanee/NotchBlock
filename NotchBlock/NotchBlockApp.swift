@@ -1,6 +1,7 @@
 import SwiftUI
 import UserNotifications
 import AppKit
+import OSLog
 
 @main
 struct NotchBlockApp: App {
@@ -11,6 +12,7 @@ struct NotchBlockApp: App {
     private let scheduler: BlockScheduler
     private let weChatNotifier: WeChatNotifier
     private let breakScheduler: BreakScheduler
+    private let statsStore: StatisticsStore
     @State private var showWeChatSettings = false
     @State private var quickAddTitle = ""
 
@@ -24,12 +26,14 @@ struct NotchBlockApp: App {
         let sched = BlockScheduler(store: store)
         let wechat = WeChatNotifier()
         let breaks = BreakScheduler(store: store)
+        let stats = StatisticsStore(store: store)
 
         panelController = panelCtrl
         overlayController = overlayCtrl
         scheduler = sched
         weChatNotifier = wechat
         breakScheduler = breaks
+        statsStore = stats
 
         // 2. Wire dependencies (self is now fully initialized)
         panelCtrl.bind(to: notchTracker)
@@ -56,10 +60,7 @@ struct NotchBlockApp: App {
     var body: some Scene {
         // Main scheduler window — opened from menu bar
         WindowGroup {
-            MainSchedulerView(
-                store: store,
-                stats: StatisticsStore(store: store)
-            )
+            MainSchedulerView(store: store, stats: statsStore)
                 .onAppear {
                     notchTracker.start()
                     scheduler.start()
@@ -229,7 +230,7 @@ struct NotchBlockApp: App {
                 let data = try encoder.encode(self.store.blocks)
                 try data.write(to: url)
             } catch {
-                storeLogger.error("Export failed: \(error.localizedDescription)")
+                Logger(subsystem: "com.notchblock.app", category: "Export").error("Export failed: \(error.localizedDescription)")
             }
         }
     }

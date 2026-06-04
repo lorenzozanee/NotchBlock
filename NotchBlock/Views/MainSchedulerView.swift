@@ -41,6 +41,7 @@ struct MainSchedulerView: View {
             }
         }
         .onAppear { setupKeyboardShortcuts() }
+        .onDisappear { removeKeyboardShortcuts() }
         .sheet(isPresented: $showAddSheet) {
             AddEditBlockView(store: store)
         }
@@ -209,16 +210,7 @@ struct MainSchedulerView: View {
         activeBlock = store.activeBlock(at: now)
     }
 
-    private func markCompleted(_ block: TimeBlock) {
-        let updated = TimeBlock(
-            id: block.id,
-            title: block.title,
-            startTime: block.startTime,
-            endTime: block.endTime,
-            status: .completed
-        )
-        store.update(updated)
-    }
+    private func markCompleted(_ block: TimeBlock) { store.update(block.with(status: .completed)) }
 
     @State private var keyMonitor: Any?
 
@@ -241,15 +233,7 @@ struct MainSchedulerView: View {
         }
     }
 
-    private func markPending(_ block: TimeBlock) {
-        let updated = TimeBlock(
-            id: block.id,
-            title: block.title,
-            startTime: block.startTime,
-            endTime: block.endTime,
-            status: .pending
-        )
-        store.update(updated)
+    private func markPending(_ block: TimeBlock) { store.update(block.with(status: .pending)) }
     }
 
     // MARK: - Helpers
@@ -260,7 +244,6 @@ struct MainSchedulerView: View {
         formatter.dateFormat = "MM月dd日 EEEE"
         return formatter.string(from: Date())
     }
-}
 
 #if DEBUG
 #Preview {

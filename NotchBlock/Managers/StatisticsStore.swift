@@ -61,7 +61,7 @@ final class StatisticsStore: ObservableObject {
 
     var hourlyProductivity: [(hour: Int, rate: Double, count: Int)] {
         var hourBuckets: [Int: (completed: Int, total: Int)] = [:]
-        for block in store.blocks {
+        for block in userBlocks {
             let hour = Calendar.current.component(.hour, from: block.startTime)
             var b = hourBuckets[hour] ?? (0, 0)
             b.total += 1

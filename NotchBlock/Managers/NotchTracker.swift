@@ -44,6 +44,7 @@ final class NotchTracker: ObservableObject {
     deinit { teardown() }
 
     func start() {
+        guard trackingWindow == nil else { return }
         createTrackingWindow()
         startFullscreenPolling()
         observeScreenChanges()
