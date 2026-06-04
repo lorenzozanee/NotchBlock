@@ -5,6 +5,26 @@ All notable changes to NotchBlock will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1] — 2026-06-05
+
+### Added
+
+- **Custom menu bar icons:** 4 styles (timer/clock/hourglass/blocks)
+- **Onboarding wizard:** 3-step first-launch setup, replaces welcome notification
+- **Timeline view:** 06:00-24:00 vertical timeline, list/timeline toggle
+- **Custom alert sounds:** 6 NSSound presets with menu bar picker
+- **Daily summary notification:** 21:00 stats recap
+- **Brand color palette:** Indigo accent (#4F46E5), semantic status colors
+
+### Changed
+
+- Card-based main window UI, improved empty state
+- NotchPanel: smoother animations, dual-layer shadow, hover micro-interactions
+- Overlay: radial gradient, larger countdown
+- Custom app icon (indigo rounded rect + time blocks)
+
+---
+
 ## [0.6.0] — 2026-06-05
 
 ### Changed
