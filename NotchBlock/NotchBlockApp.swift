@@ -44,7 +44,8 @@ struct NotchBlockApp: App {
         store.onDidChange = { [weak breaks] in breaks?.regenerateBreaks() }
         wechat.loadConfiguration()
 
-        // 3. Start background services immediately — NOT dependent on main window
+        // 3. Start background services immediately — NOT dependent on main window.
+        //    NSTrackingArea at notch needs to be active from app launch.
         notchTracker.start()
         scheduler.start()
         overlayController.requestNotificationPermission()

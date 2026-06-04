@@ -20,6 +20,10 @@ final class NotchTracker: ObservableObject {
 
     private static let notchWidth: CGFloat = 180
     private static let notchHeight: CGFloat = 32
+    /// Tracking window extends below the menu bar (~37px) into the normal event zone.
+    /// macOS Window Server intercepts mouse events in the menu bar region regardless of
+    /// window level. We need the bottom portion to reach the application event zone.
+    private static let trackingWindowHeight: CGFloat = 70
     private static let hoverDebounce: TimeInterval = 0.5   // AC 2.1
     private static let leaveDebounce: TimeInterval = 0.5   // V2: slower, gentler dismissal
 
@@ -71,13 +75,15 @@ final class NotchTracker: ObservableObject {
         let screenWidth = screenFrame.width
 
         let notchOriginX = (screenWidth - Self.notchWidth) / 2
-        let notchOriginY = screenFrame.height - Self.notchHeight
+        // Position from notch downward — top edge touches screen top,
+        // bottom edge extends well below the menu bar (~37px) event-interception zone.
+        let notchOriginY = screenFrame.height - Self.trackingWindowHeight
 
         let trackingRect = NSRect(
             x: screenFrame.origin.x + notchOriginX,
             y: screenFrame.origin.y + notchOriginY,
             width: Self.notchWidth,
-            height: Self.notchHeight
+            height: Self.trackingWindowHeight
         )
 
         let window = NSWindow(
@@ -98,9 +104,10 @@ final class NotchTracker: ObservableObject {
         trackingView.onMouseExited = { [weak self] in self?.handleMouseExit() }
         window.contentView = trackingView
 
+        // Use explicit rect — trackingView.bounds may be .zero before layout pass.
         let trackingArea = NSTrackingArea(
-            rect: trackingView.bounds,
-            options: [.mouseEnteredAndExited, .activeAlways, .inVisibleRect],
+            rect: NSRect(x: 0, y: 0, width: Self.notchWidth, height: Self.trackingWindowHeight),
+            options: [.mouseEnteredAndExited, .activeAlways, .enabledDuringMouseDrag],
             owner: trackingView,
             userInfo: nil
         )
