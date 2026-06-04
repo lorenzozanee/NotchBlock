@@ -13,9 +13,9 @@ import Combine
 /// When the mouse stays in this zone for >= 0.5 s, the panel trigger callback fires.
 /// When the mouse leaves both the zone and the panel for > 0.5 s, the dismiss fires.
 /// Disables tracking when a fullscreen app is active (AC 2.4).
-final class NotchTracker: ObservableObject {
-    /// Published: whether the notch panel should be visible
-    @Published var isPanelVisible = false
+final class NotchTracker {
+    /// Whether the notch panel should be visible (set internally, read by callbacks).
+    var isPanelVisible = false
 
     /// Called when the hover debounce completes — panel should show
     var onTrigger: (() -> Void)?
@@ -43,8 +43,17 @@ final class NotchTracker: ObservableObject {
     private var mouseInPanel = false
     private var isFullscreenActive = false
 
-    /// Set by NotchBlockApp to prevent panel from showing when main window is open.
-    var isMainWindowOpen = false
+    /// Computed: true when the main scheduler window is visible.
+    /// Uses NSApp.windows — fast, no CGWindowList overhead.
+    /// SwiftUI Window(id:"main") sets the identifier on the backing NSWindow.
+    var isMainWindowOpen: Bool {
+        NSApp.windows.contains { $0.isVisible && $0.identifier?.rawValue == "main" }
+    }
+
+    /// Debug: exposes internal state for testing.
+    var debugDescription: String {
+        "NotchTracker(polling: \(pollTimer != nil), fullscreen: \(isFullscreenActive), mainWin: \(isMainWindowOpen), inZone: \(mouseInTriggerZone), inPanel: \(mouseInPanel), panel: \(isPanelVisible))"
+    }
 
     private var cancellables = Set<AnyCancellable>()
     private var fullscreenCheckTimer: Timer?
@@ -59,10 +68,18 @@ final class NotchTracker: ObservableObject {
 
     func start() {
         guard pollTimer == nil else { return }
-        pollTimer = Timer.scheduledTimer(withTimeInterval: Self.pollInterval, repeats: true) { [weak self] _ in
-            self?.pollMousePosition()
+        // Defer timer scheduling until the run loop is active.
+        // Timer.scheduledTimer in init() runs before NSApplication.run(),
+        // so the timer is added to a run loop that isn't processing yet.
+        // Defer timer scheduling — Timer.scheduledTimer in init() adds to a
+        // run loop that hasn't started processing yet.
+        DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(500)) { [weak self] in
+            guard let self else { return }
+            self.pollTimer = Timer.scheduledTimer(withTimeInterval: Self.pollInterval, repeats: true) { [weak self] _ in
+                self?.pollMousePosition()
+            }
+            self.pollTimer?.tolerance = 0.02
         }
-        pollTimer?.tolerance = 0.02  // allow slight coalescing for energy efficiency
         startFullscreenPolling()
     }
 

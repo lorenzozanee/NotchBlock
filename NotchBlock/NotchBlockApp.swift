@@ -10,7 +10,7 @@ extension Notification.Name {
 @main
 struct NotchBlockApp: App {
     @StateObject private var store: TimeBlockStore
-    @StateObject private var notchTracker = NotchTracker()
+    private let notchTracker = NotchTracker()
     private let panelController: NotchPanelController
     private let overlayController: OverlayWindowController
     private let scheduler: BlockScheduler
@@ -45,10 +45,18 @@ struct NotchBlockApp: App {
         wechat.loadConfiguration()
 
         // 3. Start background services immediately — NOT dependent on main window.
-        //    NSTrackingArea at notch needs to be active from app launch.
         notchTracker.start()
         scheduler.start()
         overlayController.requestNotificationPermission()
+
+        // 4. SwiftUI Window scenes show by default — hide the main window after
+        //    launch so notch tracking isn't permanently blocked. The window
+        //    reopens on demand via menu bar "打开排程面板" or notch panel tap.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            for window in NSApp.windows where window.identifier?.rawValue == "main" {
+                window.close()
+            }
+        }
 
         // Route notch panel taps to open the main window
         panelCtrl.onOpenMainWindow = { [weak panelCtrl] in
@@ -74,11 +82,7 @@ struct NotchBlockApp: App {
         Window("排程面板", id: "main") {
             MainSchedulerView(store: store, stats: statsStore)
                 .onAppear {
-                    notchTracker.isMainWindowOpen = true
                     handleFirstLaunch()
-                }
-                .onDisappear {
-                    notchTracker.isMainWindowOpen = false
                 }
                 .sheet(isPresented: $showWeChatSettings) {
                     WeChatSettingsView(notifier: weChatNotifier)
@@ -195,16 +199,8 @@ struct NotchBlockApp: App {
         guard !UserDefaults.standard.bool(forKey: firstLaunchKey) else { return }
         UserDefaults.standard.set(true, forKey: firstLaunchKey)
 
-        // Auto-show the scheduler window so users aren't confused by LSUIElement behavior
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            NSApp.activate(ignoringOtherApps: true)
-            for window in NSApp.windows where window.canBecomeKey {
-                window.makeKeyAndOrderFront(nil)
-                return
-            }
-        }
-
-        // Send a welcome notification to confirm the app is running
+        // Send a welcome notification — tells user the app is running and
+        // explains how to access the scheduler (menu bar or notch hover).
         sendWelcomeNotification()
     }
 
