@@ -55,6 +55,7 @@ final class OverlayWindowController: ObservableObject {
         panel.contentView = hostingView
 
         overlayPanel = panel
+        NSSound(named: "Glass")?.play()
         panel.alphaValue = 0
         panel.orderFrontRegardless()
 

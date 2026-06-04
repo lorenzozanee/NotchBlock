@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 struct MainSchedulerView: View {
     @ObservedObject var store: TimeBlockStore
@@ -25,6 +26,7 @@ struct MainSchedulerView: View {
             statusBar
         }
         .frame(minWidth: 420, idealWidth: 460, minHeight: 360, idealHeight: 500)
+        .onAppear { setupKeyboardShortcuts() }
         .sheet(isPresented: $showAddSheet) {
             AddEditBlockView(store: store)
         }
@@ -200,6 +202,19 @@ struct MainSchedulerView: View {
             status: .completed
         )
         store.update(updated)
+    }
+
+    private func setupKeyboardShortcuts() {
+        NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            if event.modifierFlags.contains(.command) {
+                switch event.charactersIgnoringModifiers {
+                case "n": showAddSheet = true; return nil
+                case "f": /* focus search later */; return nil
+                default: break
+                }
+            }
+            return event
+        }
     }
 
     private func markPending(_ block: TimeBlock) {
