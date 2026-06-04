@@ -1,11 +1,17 @@
 import Cocoa
 import Combine
 
-/// Manages mouse tracking at the Mac notch region.
+/// Detects mouse hover at the MacBook notch via global cursor polling.
 ///
-/// Creates a transparent, click-through window positioned at the screen's notch area.
-/// When the mouse hovers for >= 0.5s, fires the panel trigger callback.
-/// When the mouse leaves for > 0.3s, fires the panel dismiss callback.
+/// NSTrackingArea at the menu bar / notch region is fundamentally broken on macOS 14+:
+/// the Window Server permanently intercepts mouse events in the top ~37px regardless
+/// of NSWindow level. Instead, we poll `NSEvent.mouseLocation` at 10 Hz — this reads
+/// cursor position directly from the Window Server shared memory, bypassing the event
+/// delivery pipeline entirely.
+///
+/// Trigger zone: top 5 px of the screen, 180 px wide centered at the notch position.
+/// When the mouse stays in this zone for >= 0.5 s, the panel trigger callback fires.
+/// When the mouse leaves both the zone and the panel for > 0.5 s, the dismiss fires.
 /// Disables tracking when a fullscreen app is active (AC 2.4).
 final class NotchTracker: ObservableObject {
     /// Published: whether the notch panel should be visible
@@ -18,21 +24,22 @@ final class NotchTracker: ObservableObject {
 
     // MARK: - Constants
 
+    /// Width of the trigger zone at the top of the screen (same as notch width).
     private static let notchWidth: CGFloat = 180
-    private static let notchHeight: CGFloat = 32
-    /// Tracking window extends below the menu bar (~37px) into the normal event zone.
-    /// macOS Window Server intercepts mouse events in the menu bar region regardless of
-    /// window level. We need the bottom portion to reach the application event zone.
-    private static let trackingWindowHeight: CGFloat = 70
-    private static let hoverDebounce: TimeInterval = 0.5   // AC 2.1
-    private static let leaveDebounce: TimeInterval = 0.5   // V2: slower, gentler dismissal
+    /// Height of the trigger zone at the very top edge of the screen.
+    /// Narrow enough to require deliberate cursor push; 10 Hz polling gives
+    /// ~5 consecutive in-zone readings within 500 ms debounce.
+    private static let triggerZoneHeight: CGFloat = 5
+    private static let hoverDebounce: TimeInterval = 0.5
+    private static let leaveDebounce: TimeInterval = 0.5
+    private static let pollInterval: TimeInterval = 0.1
 
     // MARK: - State
 
-    private var trackingWindow: NSWindow?
+    private var pollTimer: Timer?
     private var hoverTimer: Timer?
     private var leaveTimer: Timer?
-    private var mouseInNotch = false
+    private var mouseInTriggerZone = false
     private var mouseInPanel = false
     private var isFullscreenActive = false
 
@@ -51,83 +58,76 @@ final class NotchTracker: ObservableObject {
     deinit { teardown() }
 
     func start() {
-        guard trackingWindow == nil else { return }
-        createTrackingWindow()
+        guard pollTimer == nil else { return }
+        pollTimer = Timer.scheduledTimer(withTimeInterval: Self.pollInterval, repeats: true) { [weak self] _ in
+            self?.pollMousePosition()
+        }
+        pollTimer?.tolerance = 0.02  // allow slight coalescing for energy efficiency
         startFullscreenPolling()
-        observeScreenChanges()
     }
 
     func teardown() {
-        trackingWindow?.close()
-        trackingWindow = nil
+        pollTimer?.invalidate()
+        pollTimer = nil
         hoverTimer?.invalidate()
         leaveTimer?.invalidate()
         fullscreenCheckTimer?.invalidate()
         cancellables.removeAll()
     }
 
-    // MARK: - Tracking Window
+    // MARK: - Mouse Position Polling
 
-    private func createTrackingWindow() {
-        guard let screen = NSScreen.main else { return }
+    private func pollMousePosition() {
+        guard !isFullscreenActive, !isMainWindowOpen else { return }
 
-        let screenFrame = screen.frame
-        let screenWidth = screenFrame.width
+        guard let screen = findNotchScreen() else { return }
+        let mouse = NSEvent.mouseLocation  // Cocoa screen coords (origin bottom-left)
+        let inZone = isMouseInTriggerZone(mouse, screen: screen)
 
-        let notchOriginX = (screenWidth - Self.notchWidth) / 2
-        // Position from notch downward — top edge touches screen top,
-        // bottom edge extends well below the menu bar (~37px) event-interception zone.
-        let notchOriginY = screenFrame.height - Self.trackingWindowHeight
-
-        let trackingRect = NSRect(
-            x: screenFrame.origin.x + notchOriginX,
-            y: screenFrame.origin.y + notchOriginY,
-            width: Self.notchWidth,
-            height: Self.trackingWindowHeight
-        )
-
-        let window = NSWindow(
-            contentRect: trackingRect,
-            styleMask: .borderless,
-            backing: .buffered,
-            defer: false
-        )
-        window.isOpaque = false
-        window.backgroundColor = .clear
-        window.level = .statusBar
-        window.ignoresMouseEvents = false // must receive mouse events for NSTrackingArea
-        window.collectionBehavior = [.canJoinAllSpaces, .ignoresCycle]
-        window.isMovable = false
-
-        let trackingView = NotchTrackingView()
-        trackingView.onMouseEntered = { [weak self] in self?.handleMouseEnter() }
-        trackingView.onMouseExited = { [weak self] in self?.handleMouseExit() }
-        window.contentView = trackingView
-
-        // Use explicit rect — trackingView.bounds may be .zero before layout pass.
-        let trackingArea = NSTrackingArea(
-            rect: NSRect(x: 0, y: 0, width: Self.notchWidth, height: Self.trackingWindowHeight),
-            options: [.mouseEnteredAndExited, .activeAlways, .enabledDuringMouseDrag],
-            owner: trackingView,
-            userInfo: nil
-        )
-        trackingView.addTrackingArea(trackingArea)
-
-        trackingWindow = window
-        window.orderFront(nil)
+        if inZone && !mouseInTriggerZone {
+            // Mouse entered trigger zone
+            mouseInTriggerZone = true
+            leaveTimer?.invalidate()
+            leaveTimer = nil
+            scheduleHoverDebounce()
+        } else if !inZone && mouseInTriggerZone {
+            // Mouse left trigger zone
+            mouseInTriggerZone = false
+            hoverTimer?.invalidate()
+            hoverTimer = nil
+            if isPanelVisible, !mouseInPanel {
+                scheduleLeaveDebounce()
+            }
+        }
     }
 
-    // MARK: - Mouse Events
+    /// Returns the screen that has a notch, or nil on notch-less Macs / external displays.
+    private func findNotchScreen() -> NSScreen? {
+        NSScreen.screens.first { $0.safeAreaInsets.top > 0 }
+    }
 
-    private func handleMouseEnter() {
-        guard !isFullscreenActive, !isMainWindowOpen else { return }
-        mouseInNotch = true
-        leaveTimer?.invalidate()
-        leaveTimer = nil
+    /// Checks whether the given mouse position falls within the notch trigger zone.
+    ///
+    /// The zone spans the top `triggerZoneHeight` pixels of the screen, centered
+    /// horizontally over the notch position.
+    private func isMouseInTriggerZone(_ mouse: NSPoint, screen: NSScreen) -> Bool {
+        let sf = screen.frame
+        let centerX = sf.origin.x + sf.width / 2
+        let leftX = centerX - Self.notchWidth / 2
+        let rightX = centerX + Self.notchWidth / 2
+        let topY = sf.origin.y + sf.height
+        let bottomY = topY - Self.triggerZoneHeight
 
+        return mouse.x >= leftX && mouse.x <= rightX
+            && mouse.y >= bottomY && mouse.y <= topY
+    }
+
+    // MARK: - Debounce Timers
+
+    private func scheduleHoverDebounce() {
         hoverTimer?.invalidate()
         hoverTimer = Timer.scheduledTimer(withTimeInterval: Self.hoverDebounce, repeats: false) { [weak self] _ in
-            guard let self, self.mouseInNotch, !self.isFullscreenActive else { return }
+            guard let self, self.mouseInTriggerZone, !self.isFullscreenActive else { return }
             DispatchQueue.main.async {
                 self.isPanelVisible = true
                 self.onTrigger?()
@@ -135,18 +135,10 @@ final class NotchTracker: ObservableObject {
         }
     }
 
-    private func handleMouseExit() {
-        mouseInNotch = false
-        hoverTimer?.invalidate()
-        hoverTimer = nil
-        if isPanelVisible && !mouseInPanel {
-            scheduleLeaveDebounce()
-        }
-    }
-
+    /// Called by NotchPanelController when the mouse enters or exits the panel.
     func setMouseInPanel(_ inPanel: Bool) {
         mouseInPanel = inPanel
-        if !inPanel && !mouseInNotch && isPanelVisible {
+        if !inPanel, !mouseInTriggerZone, isPanelVisible {
             scheduleLeaveDebounce()
         } else if inPanel {
             leaveTimer?.invalidate()
@@ -159,7 +151,7 @@ final class NotchTracker: ObservableObject {
         leaveTimer = Timer.scheduledTimer(withTimeInterval: Self.leaveDebounce, repeats: false) { [weak self] _ in
             guard let self else { return }
             DispatchQueue.main.async {
-                guard !self.mouseInNotch, !self.mouseInPanel else { return }
+                guard !self.mouseInTriggerZone, !self.mouseInPanel else { return }
                 self.isPanelVisible = false
                 self.onDismiss?()
             }
@@ -175,20 +167,6 @@ final class NotchTracker: ObservableObject {
             .store(in: &cancellables)
     }
 
-    private func observeScreenChanges() {
-        NotificationCenter.default
-            .publisher(for: NSApplication.didChangeScreenParametersNotification)
-            .sink { [weak self] _ in
-                // Recreate tracking window on the (possibly new) main screen
-                DispatchQueue.main.async {
-                    self?.trackingWindow?.close()
-                    self?.trackingWindow = nil
-                    self?.createTrackingWindow()
-                }
-            }
-            .store(in: &cancellables)
-    }
-
     private func startFullscreenPolling() {
         fullscreenCheckTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
             self?.checkFullscreenState()
@@ -196,7 +174,6 @@ final class NotchTracker: ObservableObject {
     }
 
     private func checkFullscreenState() {
-        // NSScreen.main is main-thread-only — hoist before dispatch.
         guard let screen = NSScreen.main else { return }
         let screenBounds = screen.frame
 
@@ -206,7 +183,7 @@ final class NotchTracker: ObservableObject {
                 guard let self else { return }
                 let wasFullscreen = self.isFullscreenActive
                 self.isFullscreenActive = newState
-                if newState && !wasFullscreen {
+                if newState, !wasFullscreen {
                     self.isPanelVisible = false
                     self.onDismiss?()
                 }
@@ -215,7 +192,6 @@ final class NotchTracker: ObservableObject {
     }
 
     static func detectFullscreenActive(screenBounds: CGRect) -> Bool {
-
         let windowList = CGWindowListCopyWindowInfo(
             [.optionOnScreenOnly, .excludeDesktopElements],
             kCGNullWindowID
@@ -238,14 +214,4 @@ final class NotchTracker: ObservableObject {
         }
         return false
     }
-}
-
-// MARK: - Tracking View
-
-private final class NotchTrackingView: NSView {
-    var onMouseEntered: (() -> Void)?
-    var onMouseExited: (() -> Void)?
-
-    override func mouseEntered(with event: NSEvent) { onMouseEntered?() }
-    override func mouseExited(with event: NSEvent) { onMouseExited?() }
 }
