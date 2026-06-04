@@ -26,6 +26,20 @@ struct MainSchedulerView: View {
             statusBar
         }
         .frame(minWidth: 420, idealWidth: 460, minHeight: 360, idealHeight: 500)
+        .overlay(alignment: .bottomTrailing) {
+            if !todayBlocks.isEmpty {
+                Button { showAddSheet = true } label: {
+                    Image(systemName: "plus")
+                        .font(.title2.weight(.semibold))
+                        .frame(width: 44, height: 44)
+                }
+                .buttonStyle(.plain)
+                .background(.ultraThinMaterial, in: Circle())
+                .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
+                .padding(20)
+                .transition(.scale.combined(with: .opacity))
+            }
+        }
         .onAppear { setupKeyboardShortcuts() }
         .sheet(isPresented: $showAddSheet) {
             AddEditBlockView(store: store)
@@ -67,12 +81,6 @@ struct MainSchedulerView: View {
                 }
                 .buttonStyle(.bordered)
             }
-            Button {
-                showAddSheet = true
-            } label: {
-                Label("添加任务", systemImage: "plus")
-            }
-            .buttonStyle(.borderedProminent)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 14)
@@ -208,9 +216,11 @@ struct MainSchedulerView: View {
         NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
             if event.modifierFlags.contains(.command) {
                 switch event.charactersIgnoringModifiers {
-                case "n": showAddSheet = true; return nil
-                case "f": /* focus search later */; return nil
-                default: break
+                case "n":
+                    showAddSheet = true
+                    return nil
+                default:
+                    break
                 }
             }
             return event
