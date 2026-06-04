@@ -21,7 +21,7 @@ final class NotchTracker: ObservableObject {
     private static let notchWidth: CGFloat = 180
     private static let notchHeight: CGFloat = 32
     private static let hoverDebounce: TimeInterval = 0.5   // AC 2.1
-    private static let leaveDebounce: TimeInterval = 0.3   // AC 2.3
+    private static let leaveDebounce: TimeInterval = 0.5   // V2: slower, gentler dismissal
 
     // MARK: - State
 
@@ -31,6 +31,9 @@ final class NotchTracker: ObservableObject {
     private var mouseInNotch = false
     private var mouseInPanel = false
     private var isFullscreenActive = false
+
+    /// Set by NotchBlockApp to prevent panel from showing when main window is open.
+    var isMainWindowOpen = false
 
     private var cancellables = Set<AnyCancellable>()
     private var fullscreenCheckTimer: Timer?
@@ -110,7 +113,7 @@ final class NotchTracker: ObservableObject {
     // MARK: - Mouse Events
 
     private func handleMouseEnter() {
-        guard !isFullscreenActive else { return }
+        guard !isFullscreenActive, !isMainWindowOpen else { return }
         mouseInNotch = true
         leaveTimer?.invalidate()
         leaveTimer = nil
@@ -186,8 +189,12 @@ final class NotchTracker: ObservableObject {
     }
 
     private func checkFullscreenState() {
+        // NSScreen.main is main-thread-only — hoist before dispatch.
+        guard let screen = NSScreen.main else { return }
+        let screenBounds = screen.frame
+
         DispatchQueue.global(qos: .utility).async { [weak self] in
-            let newState = Self.detectFullscreenActive()
+            let newState = Self.detectFullscreenActive(screenBounds: screenBounds)
             DispatchQueue.main.async {
                 guard let self else { return }
                 let wasFullscreen = self.isFullscreenActive
@@ -200,9 +207,7 @@ final class NotchTracker: ObservableObject {
         }
     }
 
-    static func detectFullscreenActive() -> Bool {
-        guard let screen = NSScreen.main else { return false }
-        let screenBounds = screen.frame
+    static func detectFullscreenActive(screenBounds: CGRect) -> Bool {
 
         let windowList = CGWindowListCopyWindowInfo(
             [.optionOnScreenOnly, .excludeDesktopElements],

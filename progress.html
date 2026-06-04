@@ -96,14 +96,14 @@
 <body>
 
 <h1><span>NotchBlock</span> 刘海时间块</h1>
-<p class="subtitle">macOS 时间块强制执行工具 · 开发进度看板 · 2026-06-04 · <strong>v0.5.6</strong></p>
+<p class="subtitle">macOS 时间块强制执行工具 · 开发进度看板 · 2026-06-04 · <strong>v0.5.8</strong></p>
 
 <div class="stats">
   <div class="stat-card"><div class="stat-value green">4/4</div><div class="stat-label">开发阶段</div></div>
   <div class="stat-card"><div class="stat-value blue">20</div><div class="stat-label">Swift 源文件</div></div>
   <div class="stat-card"><div class="stat-value purple">2,588</div><div class="stat-label">总代码行数</div></div>
   <div class="stat-card"><div class="stat-value green">✅</div><div class="stat-label">构建状态</div></div>
-  <div class="stat-card"><div class="stat-value blue">37</div><div class="stat-label">Git 提交</div></div>
+  <div class="stat-card"><div class="stat-value blue">39</div><div class="stat-label">Git 提交</div></div>
 </div>
 
 <h2>🏗️ 架构总览</h2>
@@ -228,11 +228,43 @@ NotchBlock/
   </div>
 </div>
 
+<!-- Phase 5 -->
+<div class="phase">
+  <div class="phase-header">
+    <div class="phase-badge">5</div>
+    <div class="phase-title">第五阶段：NotchPanel V2 重设计</div>
+    <div class="phase-status">✅ 已完成</div>
+  </div>
+  <div class="phase-body">
+    <h3>验收标准</h3>
+    <div class="ac-grid">
+      <div class="ac-item"><span class="ac-icon">✅</span> AC 5.1 简约大气 UI — 毛玻璃 18px 圆角 + 渐变边框 + 大倒计时</div>
+      <div class="ac-item"><span class="ac-icon">✅</span> AC 5.2 交互持久 — 鼠标移入面板保持显示，离开后 0.5s 缓慢消失</div>
+      <div class="ac-item"><span class="ac-icon">✅</span> AC 5.3 倒计时 — 1 秒刷新，.common runloop 模式下不冻结</div>
+      <div class="ac-item"><span class="ac-icon">✅</span> AC 5.4 互斥显示 — 排程面板打开时刘海 hover 不触发</div>
+      <div class="ac-item"><span class="ac-icon">✅</span> AC 5.5 空状态 — 无任务时显示友好空态提示</div>
+      <div class="ac-item"><span class="ac-icon">✅</span> AC 5.6 动态高度 — fittingSize 自适应内容，最多 5 个 upcoming 可滚动</div>
+      <div class="ac-item"><span class="ac-icon">✅</span> AC 5.7 点击跳转 — 点击任意任务/添加按钮 → 打开主排程窗口</div>
+    </div>
+    <div class="file-list">
+      Views/NotchPanelView.swift · Managers/NotchPanelController.swift · Managers/NotchTracker.swift · NotchBlockApp.swift
+    </div>
+  </div>
+</div>
+
 <!-- Commits -->
 <h2>📝 Git 提交历史</h2>
 <div class="commits">
   <div class="commit">
-    <div class="commit-hash">c6f4c2f</div>
+    <div class="commit-hash">(pending)</div>
+    <div><div class="commit-msg">feat: NotchPanel V2 redesign — elegant notch dropdown</div><div class="commit-meta">v0.5.8 · 4 files · dynamic height · read-only glance · mutual exclusion · timer lifecycle fix · NSScreen.main thread safety</div></div>
+  </div>
+  <div class="commit">
+    <div class="commit-hash">80a3add</div>
+    <div><div class="commit-msg">fix: menu bar open-panel unresponsive + notch hover dead</div><div class="commit-meta">v0.5.8 · WindowGroup→Window(id:) · ignoresMouseEvents fix</div></div>
+  </div>
+  <div class="commit">
+    <div class="commit-hash">c6c4c2f</div>
     <div><div class="commit-msg">feat: new app icon — notch silhouette + focus block design</div><div class="commit-meta">v0.5.6 · 10 files · programmatic generation 16→1024px · icon embedded in app bundle</div></div>
   </div>
   <div class="commit">
@@ -278,7 +310,7 @@ NotchBlock/
 </div>
 
 <div class="footer">
-  NotchBlock v0.5.6 · 构建于 2026-06-04 · Xcode 16.4 · Swift 6.1.2 · Apple Silicon (arm64)
+  NotchBlock v0.5.8 · 构建于 2026-06-04 · Xcode 16.4 · Swift 6.1 · Apple Silicon (arm64)
 </div>
 
 </body>

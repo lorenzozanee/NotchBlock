@@ -44,6 +44,12 @@ struct NotchBlockApp: App {
         store.onDidChange = { [weak breaks] in breaks?.regenerateBreaks() }
         wechat.loadConfiguration()
 
+        // Route notch panel taps to open the main window
+        panelCtrl.onOpenMainWindow = { [weak panelCtrl] in
+            panelCtrl?.hide()
+            NotificationCenter.default.post(name: .openMainWindow, object: nil)
+        }
+
         overlayCtrl.onMarkCompleted = { store.update($0.with(status: .completed)) }
         overlayCtrl.onMarkMissed = { store.update($0.with(status: .missed)) }
 
@@ -62,10 +68,14 @@ struct NotchBlockApp: App {
         Window("排程面板", id: "main") {
             MainSchedulerView(store: store, stats: statsStore)
                 .onAppear {
+                    notchTracker.isMainWindowOpen = true
                     notchTracker.start()
                     scheduler.start()
                     overlayController.requestNotificationPermission()
                     handleFirstLaunch()
+                }
+                .onDisappear {
+                    notchTracker.isMainWindowOpen = false
                 }
                 .sheet(isPresented: $showWeChatSettings) {
                     WeChatSettingsView(notifier: weChatNotifier)
