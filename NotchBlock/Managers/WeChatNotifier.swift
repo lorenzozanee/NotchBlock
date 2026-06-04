@@ -90,7 +90,11 @@ final class WeChatNotifier: ObservableObject {
             "appToken": appToken, "content": content,
             "summary": summary, "contentType": 1, "uids": [uid]
         ]
-        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        guard let bodyData = try? JSONSerialization.data(withJSONObject: body) else {
+            wechatLogger.error("Failed to serialize request body")
+            return
+        }
+        request.httpBody = bodyData
 
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error {
@@ -110,7 +114,11 @@ final class WeChatNotifier: ObservableObject {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         let body: [String: Any] = ["msgtype": "text", "text": ["content": content]]
-        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        guard let bodyData = try? JSONSerialization.data(withJSONObject: body) else {
+            wechatLogger.error("Failed to serialize request body")
+            return
+        }
+        request.httpBody = bodyData
 
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error {

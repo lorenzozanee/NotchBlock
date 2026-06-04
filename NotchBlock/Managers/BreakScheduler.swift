@@ -4,10 +4,15 @@ import Foundation
 final class BreakScheduler {
     private let store: TimeBlockStore
     private let breakDuration: TimeInterval = 300
+    private var isRegenerating = false
 
     init(store: TimeBlockStore) { self.store = store }
 
     func regenerateBreaks() {
+        guard !isRegenerating else { return }
+        isRegenerating = true
+        defer { isRegenerating = false }
+
         let all = store.blocks
         let user = all.filter { !$0.isBreak }.sorted { $0.startTime < $1.startTime }
 
