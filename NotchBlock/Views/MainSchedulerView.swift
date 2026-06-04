@@ -90,23 +90,31 @@ struct MainSchedulerView: View {
 
     private var emptyState: some View {
         VStack(spacing: 16) {
-            Image(systemName: "calendar.badge.plus")
-                .font(.system(size: 40))
+            Image(systemName: "timer.circle")
+                .font(.system(size: 56, weight: .light))
                 .foregroundStyle(.tertiary)
+                .symbolEffect(.pulse, options: .repeating)
             Text("今天还没有安排任务")
-                .font(.title3)
+                .font(.title3.weight(.medium))
                 .foregroundStyle(.secondary)
-            Text("点击上方「添加任务」开始规划你的时间块")
+            Text("⌘N 快速添加 · 菜单栏输入任务名")
                 .font(.caption)
                 .foregroundStyle(.tertiary)
-            Button("添加第一个任务") {
-                showAddSheet = true
-            }
-            .buttonStyle(.bordered)
-            .padding(.top, 4)
+                .padding(.bottom, 8)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(40)
+        .overlay(alignment: .bottomTrailing) {
+            Button { showAddSheet = true } label: {
+                Image(systemName: "plus")
+                    .font(.title2.weight(.semibold))
+                    .frame(width: 48, height: 48)
+            }
+            .buttonStyle(.plain)
+            .background(.ultraThinMaterial, in: Circle())
+            .shadow(color: .black.opacity(0.15), radius: 12, y: 4)
+            .padding(24)
+        }
     }
 
     // MARK: - Block List
