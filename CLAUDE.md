@@ -43,16 +43,57 @@ Installed under `.claude/agents/`. Key agents for this project:
 ## Development Workflow
 
 ```
-Research → Red/Blue Adversarial → TDD → Implement → Review → Commit → Release
+Discovery → Deep Research → Red/Blue Adversarial → TDD → Implement → Review → Commit → Release
 ```
 
-- **Research:** Search GitHub + docs before building. Use `/discovery` for product requirements.
-- **Red/Blue:** Parallel agents argue *against* and *for* the feature. Verdict: Go / No-Go / Defer.
-- **TDD:** `/ecc:tdd-guide` — write tests first, define acceptance criteria, break into tasks.
-- **Implement:** RED → GREEN → REFACTOR. Many small files (200-400 lines, 800 max). Immutable data patterns.
-- **Review:** `/ecc:code-review` + `swift-reviewer`. Fix ALL critical/high issues.
-- **Commit:** Conventional commits (`feat:`, `fix:`, `refactor:`).
-- **Release:** Tag semver, `scripts/build-dmg.sh`, GitHub Release + `CHANGELOG.md`.
+### 0. Discovery — 需求发现 (`/discovery`)
+
+将自然语言需求转化为锁定的需求文档 v2。三步走：
+1. **Phase 1** — 需求分析师三层追问（必问题 → 关键词追问 → 功能畅想），输出 `docs/discovery/requirements-v1.md`
+2. **Phase 2** — 并行审查（一致性审查 + 可行性审查）
+3. **Phase 3** — 合并审查意见，输出锁定的 `docs/discovery/requirements-v2.md`
+
+适用：新功能、大重构、产品方向调整。小改动跳过此阶段。
+
+### 1. Deep Research — 双轨调研 (`/deep-research` + `mgrep --web`)
+
+**必须执行**，禁止跳过。需求文档 v2 锁定后，启动双轨并行调研：
+
+#### Track A: 产品调研（PM 视角 — `mgrep --web` + `/deep-research`）
+- **竞品对比**: 同类 macOS 工具的功能矩阵、UX 模式、定价策略
+- **需求验证**: 目标用户真实痛点、社区反馈（Reddit、V2EX、GitHub Issues）
+- **市场定位**: 差异化切入点、未被覆盖的场景
+
+#### Track B: 技术调研（工程师视角 — `/deep-research`）
+- **开源项目检索**: GitHub 搜索同类实现、可复用的库/框架
+- **技术方案对比**: API 选型 tradeoff、性能基准、兼容性矩阵
+- **Apple 文档深挖**: HIG、AppKit 最佳实践、macOS 版本兼容性
+
+**输出**: `docs/research/` 下的调研报告，包含竞品矩阵、技术选型建议、风险标注。Red/Blue 阶段引用此报告。
+
+### 2. Red/Blue Adversarial
+
+并行启动两个 Agent，分别论证 *反对* 和 *支持* 该功能。结合 Deep Research 报告交叉验证。最终裁决：Go / No-Go / Defer。
+
+### 3. TDD
+
+`/ecc:tdd-guide` — 写测试先行，定义验收标准，拆分为任务。确保 80%+ 覆盖率。
+
+### 4. Implement
+
+RED → GREEN → REFACTOR。许多小文件（200-400 行，800 上限）。不可变数据模式。
+
+### 5. Review
+
+`/ecc:code-review` + `swift-reviewer`。修复所有 CRITICAL/HIGH 问题。
+
+### 6. Commit
+
+Conventional commits (`feat:`, `fix:`, `refactor:`)。
+
+### 7. Release
+
+Tag semver, `scripts/build-dmg.sh`, GitHub Release + `CHANGELOG.md`。
 
 ## Context Management
 
