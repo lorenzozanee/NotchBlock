@@ -83,6 +83,17 @@ Discovery → Deep Research → Red/Blue Adversarial → TDD → Implement → R
 
 RED → GREEN → REFACTOR。许多小文件（200-400 行，800 上限）。不可变数据模式。
 
+**实现过程中持续检索**（不要仅凭记忆写代码）：
+
+| 场景 | 工具 | 检索内容 |
+|------|------|----------|
+| 选用陌生 API | `mgrep --web` | Apple 官方文档、API 最佳实践、已知坑点 |
+| 遇到复杂技术问题 | `/deep-research` | 开源项目如何解决同类问题、社区方案对比 |
+| 需要代码参考 | `mgrep --web` + GitHub | 搜索实际项目中的用法模式、边界处理 |
+| 性能/兼容性不确定 | `/deep-research` | macOS 版本差异、硬件兼容性、已知 bug |
+
+每次实现新模块前，先花 2 分钟用 `mgrep --web` 快速验证方案可行性。遇到不确定的技术决策时，不猜测，直接检索。
+
 ### 5. Review
 
 `/ecc:code-review` + `swift-reviewer`。修复所有 CRITICAL/HIGH 问题。
