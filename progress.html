@@ -99,11 +99,11 @@
 <p class="subtitle">macOS 时间块强制执行工具 · 开发进度看板 · 2026-06-04 · <strong>v0.5.10</strong></p>
 
 <div class="stats">
-  <div class="stat-card"><div class="stat-value green">5/6</div><div class="stat-label">开发阶段</div></div>
+  <div class="stat-card"><div class="stat-value green">6/6</div><div class="stat-label">开发阶段</div></div>
   <div class="stat-card"><div class="stat-value blue">20</div><div class="stat-label">Swift 源文件</div></div>
   <div class="stat-card"><div class="stat-value purple">2,588</div><div class="stat-label">总代码行数</div></div>
   <div class="stat-card"><div class="stat-value green">✅</div><div class="stat-label">构建状态</div></div>
-  <div class="stat-card"><div class="stat-value blue">49</div><div class="stat-label">Git 提交</div></div>
+  <div class="stat-card"><div class="stat-value blue">52</div><div class="stat-label">Git 提交</div></div>
 </div>
 
 <h2>🏗️ 架构总览</h2>
@@ -257,7 +257,7 @@ NotchBlock/
   <div class="phase-header">
     <div class="phase-badge">6</div>
     <div class="phase-title">第六阶段：NotchTracker 架构重写 — NSTrackingArea → 鼠标位置轮询</div>
-    <div class="phase-status">🔄 待物理测试</div>
+    <div class="phase-status">✅ 已验证</div>
   </div>
   <div class="phase-body">
     <h3>根本问题</h3>
@@ -270,11 +270,11 @@ NotchBlock/
     </p>
     <h3>验收标准</h3>
     <div class="ac-grid">
-      <div class="ac-item"><span class="ac-icon">⬜</span> AC 6.1 触发区域 — 顶部 5px、中心 180px 宽，需故意将光标推到屏幕顶端</div>
-      <div class="ac-item"><span class="ac-icon">⬜</span> AC 6.2 悬停防抖 — 在触发区停留 ≥0.5s → 面板显示</div>
-      <div class="ac-item"><span class="ac-icon">⬜</span> AC 6.3 离开隐藏 — 离开触发区 + 离开面板 &gt;0.5s → 面板消失</div>
-      <div class="ac-item"><span class="ac-icon">⬜</span> AC 6.4 全屏避让 — 全屏检测 + 主窗口互斥保持不变</div>
-      <div class="ac-item"><span class="ac-icon">⬜</span> AC 6.5 无刘海 Mac — 自动检测 safeAreaInsets.top &gt; 0，非刘海屏不轮询</div>
+      <div class="ac-item"><span class="ac-icon">✅</span> AC 6.1 触发区域 — 顶部 5px、中心 180px 宽，需故意将光标推到屏幕顶端</div>
+      <div class="ac-item"><span class="ac-icon">✅</span> AC 6.2 悬停防抖 — 在触发区停留 ≥0.5s → 面板显示</div>
+      <div class="ac-item"><span class="ac-icon">✅</span> AC 6.3 离开隐藏 — 离开触发区 + 离开面板 &gt;0.5s → 面板消失</div>
+      <div class="ac-item"><span class="ac-icon">✅</span> AC 6.4 全屏避让 — 全屏检测 + 主窗口互斥保持不变</div>
+      <div class="ac-item"><span class="ac-icon">✅</span> AC 6.5 无刘海 Mac — 自动检测 safeAreaInsets.top &gt; 0，非刘海屏不轮询</div>
     </div>
     <div class="file-list">
       Managers/NotchTracker.swift (76 行增, 110 行删 · 完全重写)
@@ -285,6 +285,14 @@ NotchBlock/
 <!-- Commits -->
 <h2>📝 Git 提交历史</h2>
 <div class="commits">
+  <div class="commit">
+    <div class="commit-hash">0d70642</div>
+    <div><div class="commit-msg">fix: three bugs preventing polling — @StateObject + timer + auto-show</div><div class="commit-meta">v0.5.10 · NotchTracking working ✅ · 320x149 panel confirmed via CGWarp test</div></div>
+  </div>
+  <div class="commit">
+    <div class="commit-hash">65428c7</div>
+    <div><div class="commit-msg">docs: add Phase 6 — NotchTracker polling rewrite to progress.html</div><div class="commit-meta">v0.5.10 · HTML documentation update</div></div>
+  </div>
   <div class="commit">
     <div class="commit-hash">fd47e4c</div>
     <div><div class="commit-msg">feat: replace NSTrackingArea with NSEvent.mouseLocation polling</div><div class="commit-meta">v0.5.10 · NotchTracker rewritten · 10 Hz cursor polling · zero NSTrackingArea</div></div>
