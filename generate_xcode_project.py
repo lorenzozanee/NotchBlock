@@ -30,6 +30,7 @@ files = [
     ("StatisticsView.swift",        "NotchBlock/Views/StatisticsView.swift"),
     ("DateExtensions.swift",        "NotchBlock/Utilities/DateExtensions.swift"),
     ("LaunchManager.swift",         "NotchBlock/Utilities/LaunchManager.swift"),
+    ("BrandColors.swift",           "NotchBlock/Utilities/BrandColors.swift"),
 ]
 
 resources = [
@@ -136,7 +137,7 @@ def groups_section():
 \t\t{utils_grp} = {{
 \t\t\tisa = PBXGroup;
 \t\t\tchildren = (
-{children(['DateExtensions.swift', 'LaunchManager.swift'])}
+{children(['DateExtensions.swift', 'LaunchManager.swift', 'BrandColors.swift'])}
 \t\t\t);
 \t\t\tpath = Utilities;
 \t\t\tsourceTree = "<group>";

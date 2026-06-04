@@ -19,6 +19,31 @@ struct NotchBlockApp: App {
     private let statsStore: StatisticsStore
     @State private var showWeChatSettings = false
     @State private var quickAddTitle = ""
+    @AppStorage("menuBarIconStyle") private var iconStyle = "timer"
+
+    enum IconStyle: String, CaseIterable {
+        case timer = "timer"
+        case clock = "clock"
+        case hourglass = "hourglass"
+        case blocks = "blocks"
+
+        var systemImage: String {
+            switch self {
+            case .timer: return "timer"
+            case .clock: return "calendar.badge.clock"
+            case .hourglass: return "hourglass"
+            case .blocks: return "square.grid.3x3.fill"
+            }
+        }
+        var label: String {
+            switch self {
+            case .timer: return "计时器"
+            case .clock: return "日历时钟"
+            case .hourglass: return "沙漏"
+            case .blocks: return "方块"
+            }
+        }
+    }
 
     init() {
         // 1. Initialize all stored properties first
@@ -152,6 +177,24 @@ struct NotchBlockApp: App {
 
         Divider()
 
+        Menu("菜单栏图标") {
+            ForEach(IconStyle.allCases, id: \.rawValue) { s in
+                Button {
+                    iconStyle = s.rawValue
+                } label: {
+                    HStack {
+                        Image(systemName: s.systemImage)
+                        Text(s.label)
+                        if iconStyle == s.rawValue {
+                            Image(systemName: "checkmark")
+                        }
+                    }
+                }
+            }
+        }
+
+        Divider()
+
         Toggle(isOn: Binding(
             get: { LaunchManager.isLoginItemEnabled },
             set: { enabled in try? LaunchManager.setLoginItemEnabled(enabled) }
@@ -172,22 +215,23 @@ struct NotchBlockApp: App {
     @ViewBuilder
     private var menuBarIcon: some View {
         let pending = store.todayBlocks().filter { $0.status == .pending }.count
+        let style = IconStyle(rawValue: iconStyle) ?? .timer
         if let active = store.activeBlock() {
             if let remaining = active.remainingTime {
                 let minutes = Int(remaining / 60)
-                Image(systemName: "timer")
+                Image(systemName: style.systemImage)
                 Text("\(minutes)m")
                     .font(.system(size: 11, weight: .medium, design: .monospaced))
             } else {
-                Image(systemName: "timer")
+                Image(systemName: style.systemImage)
             }
         } else if pending > 0 {
-            Image(systemName: "calendar.badge.clock")
+            Image(systemName: style.systemImage)
             Text("\(pending)")
                 .font(.system(size: 9, weight: .bold, design: .monospaced))
                 .foregroundStyle(.secondary)
         } else {
-            Image(systemName: "calendar.badge.clock")
+            Image(systemName: style.systemImage)
         }
     }
 

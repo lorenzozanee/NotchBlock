@@ -17,23 +17,29 @@ struct OverlayView: View {
     var body: some View {
         ZStack {
             Rectangle().fill(.ultraThinMaterial).ignoresSafeArea()
-                .overlay(Color.black.opacity(0.35).ignoresSafeArea())
+                .overlay(
+                    RadialGradient(
+                        colors: [.black.opacity(0.45), .black.opacity(0.55), .black.opacity(0.7)],
+                        center: .center, startRadius: 200, endRadius: 800
+                    ).ignoresSafeArea()
+                )
 
-            VStack(spacing: 28) {
+            VStack(spacing: 32) {
                 Image(systemName: "bell.and.waves.left.and.right")
-                    .font(.system(size: 48, weight: .light))
+                    .font(.system(size: 56, weight: .light))
                     .foregroundStyle(.white)
                     .symbolEffect(.pulse, options: .repeating, value: cardAppeared)
 
-                VStack(spacing: 8) {
+                VStack(spacing: 10) {
                     Text("「\(block.title)」的时间到了！")
                         .font(.title.weight(.semibold)).foregroundStyle(.primary)
                     Text("你完成了这项任务吗？")
                         .font(.title3).foregroundStyle(.secondary)
                     HStack(spacing: 4) {
                         Image(systemName: "timer").font(.caption)
-                        Text("\(remainingFormatted) 后自动标记为未完成").font(.caption)
-                    }.foregroundStyle(.tertiary).padding(.top, 4)
+                        Text("\(remainingFormatted) 后自动标记为未完成")
+                            .font(.system(size: 16, weight: .medium, design: .monospaced))
+                    }.foregroundStyle(.tertiary).padding(.top, 6)
                 }.multilineTextAlignment(.center)
 
                 HStack(spacing: 16) {

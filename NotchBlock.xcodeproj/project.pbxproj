@@ -27,6 +27,7 @@
 		8D8CEB546F27BF9553BF48E5 /* StatisticsView.swift */ = {isa = PBXBuildFile; fileRef = 23C69940C13A81DFC377476C /* StatisticsView.swift */; };
 		05E3945FA3BCF89E04CCA183 /* DateExtensions.swift */ = {isa = PBXBuildFile; fileRef = 5404929B171D255696DC34DE /* DateExtensions.swift */; };
 		6C2129AFAFFF8B7254C90DEB /* LaunchManager.swift */ = {isa = PBXBuildFile; fileRef = 7B82270FE5C20AF2B1F0E39E /* LaunchManager.swift */; };
+		98B76300C2224051A9F49F6D /* BrandColors.swift */ = {isa = PBXBuildFile; fileRef = B80F271916A3D0413AFC914A /* BrandColors.swift */; };
 		5BFB3AC5498C548E2EAF1C43 /* Assets */ = {isa = PBXBuildFile; fileRef = 13161977E9C32ADDC42AA128 /* Assets */; };
 		73F477CA759EBC513EB6600C /* Info.plist */ = {isa = PBXBuildFile; fileRef = 51FB5475FF8535F7775454AF /* Info.plist */; };
 /* End PBXBuildFile section */
@@ -52,6 +53,7 @@
 		23C69940C13A81DFC377476C /* StatisticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StatisticsView.swift"; sourceTree = "<group>"; };
 		5404929B171D255696DC34DE /* DateExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DateExtensions.swift"; sourceTree = "<group>"; };
 		7B82270FE5C20AF2B1F0E39E /* LaunchManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LaunchManager.swift"; sourceTree = "<group>"; };
+		B80F271916A3D0413AFC914A /* BrandColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BrandColors.swift"; sourceTree = "<group>"; };
 		13161977E9C32ADDC42AA128 /* Assets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Assets.xcassets"; sourceTree = "<group>"; };
 		51FB5475FF8535F7775454AF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info.plist"; sourceTree = "<group>"; };
 		A734CCEF338A717792A212FE /* NotchBlock.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NotchBlock.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -116,6 +118,7 @@
 			children = (
 				5404929B171D255696DC34DE /* DateExtensions.swift */,
 				7B82270FE5C20AF2B1F0E39E /* LaunchManager.swift */,
+				B80F271916A3D0413AFC914A /* BrandColors.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -214,6 +217,7 @@
 				8D8CEB546F27BF9553BF48E5 /* StatisticsView.swift in Sources */,
 				05E3945FA3BCF89E04CCA183 /* DateExtensions.swift in Sources */,
 				6C2129AFAFFF8B7254C90DEB /* LaunchManager.swift in Sources */,
+				98B76300C2224051A9F49F6D /* BrandColors.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

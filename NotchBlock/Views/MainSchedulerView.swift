@@ -25,7 +25,9 @@ struct MainSchedulerView: View {
             Divider()
             statusBar
         }
-        .frame(minWidth: 420, idealWidth: 460, minHeight: 360, idealHeight: 500)
+        .frame(minWidth: 440, idealWidth: 480, minHeight: 380, idealHeight: 520)
+        .tint(BrandColors.accent)
+        .background(.windowBackground)
         .overlay(alignment: .bottomTrailing) {
             if !todayBlocks.isEmpty {
                 Button { showAddSheet = true } label: {
