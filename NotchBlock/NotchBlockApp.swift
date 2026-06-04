@@ -18,8 +18,10 @@ struct NotchBlockApp: App {
     private let breakScheduler: BreakScheduler
     private let statsStore: StatisticsStore
     @State private var showWeChatSettings = false
+    @State private var showOnboarding = false
     @State private var quickAddTitle = ""
     @AppStorage("menuBarIconStyle") private var iconStyle = "timer"
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
     enum IconStyle: String, CaseIterable {
         case timer = "timer"
@@ -107,14 +109,21 @@ struct NotchBlockApp: App {
         Window("排程面板", id: "main") {
             MainSchedulerView(store: store, stats: statsStore)
                 .onAppear {
-                    handleFirstLaunch()
+                    if !hasCompletedOnboarding {
+                        showOnboarding = true
+                    }
+                }
+                .sheet(isPresented: $showOnboarding) {
+                    OnboardingView {
+                        createSampleBlocks()
+                    }
                 }
                 .sheet(isPresented: $showWeChatSettings) {
                     WeChatSettingsView(notifier: weChatNotifier)
                 }
         }
         .windowResizability(.contentSize)
-        .defaultSize(width: 460, height: 500)
+        .defaultSize(width: 480, height: 520)
 
         // Menu bar item — always visible, lightweight
         MenuBarExtra {
@@ -237,29 +246,17 @@ struct NotchBlockApp: App {
 
     // MARK: - First Launch
 
-    private let firstLaunchKey = "hasLaunchedBefore"
-
-    private func handleFirstLaunch() {
-        guard !UserDefaults.standard.bool(forKey: firstLaunchKey) else { return }
-        UserDefaults.standard.set(true, forKey: firstLaunchKey)
-
-        // Send a welcome notification — tells user the app is running and
-        // explains how to access the scheduler (menu bar or notch hover).
-        sendWelcomeNotification()
-    }
-
-    private func sendWelcomeNotification() {
-        let content = UNMutableNotificationContent()
-        content.title = "NotchBlock 已就绪"
-        content.body = "点击菜单栏日历图标查看排程。鼠标悬停在 Mac 刘海即可快速预览今日任务。"
-        content.sound = .default
-
-        let request = UNNotificationRequest(
-            identifier: "welcome-\(UUID().uuidString)",
-            content: content,
-            trigger: UNTimeIntervalNotificationTrigger(timeInterval: 2, repeats: false)
-        )
-        UNUserNotificationCenter.current().add(request)
+    private func createSampleBlocks() {
+        guard store.todayBlocks().isEmpty else { return }
+        let cal = Calendar.current
+        let now = Date()
+        let start = cal.startOfDay(for: now)
+        let blocks: [TimeBlock] = [
+            TimeBlock(title: "晨间规划", startTime: cal.date(byAdding: .hour, value: 9, to: start)!, endTime: cal.date(byAdding: .hour, value: 9, to: start)!.addingTimeInterval(900), status: .completed),
+            TimeBlock(title: "深度工作", startTime: cal.date(byAdding: .hour, value: 10, to: start)!, endTime: cal.date(byAdding: .hour, value: 12, to: start)!, status: .pending),
+            TimeBlock(title: "午休", startTime: cal.date(byAdding: .hour, value: 12, to: start)!, endTime: cal.date(byAdding: .hour, value: 13, to: start)!, status: .pending),
+        ]
+        for b in blocks { store.add(b) }
     }
 
     // MARK: - Helpers
