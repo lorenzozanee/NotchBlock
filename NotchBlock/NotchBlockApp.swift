@@ -44,6 +44,11 @@ struct NotchBlockApp: App {
         store.onDidChange = { [weak breaks] in breaks?.regenerateBreaks() }
         wechat.loadConfiguration()
 
+        // 3. Start background services immediately — NOT dependent on main window
+        notchTracker.start()
+        scheduler.start()
+        overlayController.requestNotificationPermission()
+
         // Route notch panel taps to open the main window
         panelCtrl.onOpenMainWindow = { [weak panelCtrl] in
             panelCtrl?.hide()
@@ -69,9 +74,6 @@ struct NotchBlockApp: App {
             MainSchedulerView(store: store, stats: statsStore)
                 .onAppear {
                     notchTracker.isMainWindowOpen = true
-                    notchTracker.start()
-                    scheduler.start()
-                    overlayController.requestNotificationPermission()
                     handleFirstLaunch()
                 }
                 .onDisappear {
