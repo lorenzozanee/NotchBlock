@@ -9,6 +9,13 @@ struct MainSchedulerView: View {
     @State private var activeBlock: TimeBlock?
     @State private var now = Date()
     @State private var showStats = false
+    @State private var viewMode: ViewMode = .list
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+
+    enum ViewMode: String, CaseIterable {
+        case list = "列表"
+        case timeline = "时间轴"
+    }
 
     /// Timer fires every 30s to refresh active-block detection and relative times
     private let tickTimer = Timer.publish(every: 30, on: .main, in: .common).autoconnect()
@@ -19,6 +26,12 @@ struct MainSchedulerView: View {
             Divider()
             if todayBlocks.isEmpty {
                 emptyState
+            } else if viewMode == .timeline {
+                TimelineView(
+                    blocks: todayBlocks,
+                    activeBlockID: activeBlock?.id,
+                    onTap: { editingBlock = $0 }
+                )
             } else {
                 blockList
             }
@@ -78,6 +91,14 @@ struct MainSchedulerView: View {
                     .foregroundStyle(.secondary)
             }
             Spacer()
+            Picker("视图", selection: $viewMode) {
+                ForEach(ViewMode.allCases, id: \.rawValue) { mode in
+                    Label(mode.rawValue, systemImage: mode == .list ? "list.bullet" : "rectangle.split.1x2")
+                        .tag(mode)
+                }
+            }
+            .pickerStyle(.segmented)
+            .frame(width: 140)
             if stats != nil {
                 Button { showStats = true } label: {
                     Label("统计", systemImage: "chart.bar.fill")
@@ -92,32 +113,42 @@ struct MainSchedulerView: View {
     // MARK: - Empty State
 
     private var emptyState: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "timer.circle")
-                .font(.system(size: 56, weight: .light))
-                .foregroundStyle(.tertiary)
-                .symbolEffect(.pulse, options: .repeating)
-            Text("今天还没有安排任务")
-                .font(.title3.weight(.medium))
-                .foregroundStyle(.secondary)
-            Text("⌘N 快速添加 · 菜单栏输入任务名")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-                .padding(.bottom, 8)
+        VStack(spacing: 20) {
+            Spacer()
+            Image(systemName: "calendar.badge.plus")
+                .font(.system(size: 52, weight: .light))
+                .foregroundStyle(BrandColors.accent)
+                .symbolEffect(.bounce.up, options: .repeating)
+
+            VStack(spacing: 6) {
+                Text("今天还没有安排任务")
+                    .font(.title3.weight(.medium))
+                Text("点击下方 + 按钮或按 ⌘N 添加第一个任务")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            VStack(spacing: 10) {
+                Label("菜单栏输入任务名，快速创建 30 分钟时间块", systemImage: "text.cursor")
+                Label("鼠标悬停 Mac 刘海，快速预览今日排程", systemImage: "rectangle.and.hand.point.up.left")
+                Label("任务结束时全屏遮罩强提醒，帮你保持专注", systemImage: "bell.badge")
+            }
+            .font(.caption)
+            .foregroundStyle(.tertiary)
+            .padding(.vertical, 8)
+
+            Button { showAddSheet = true } label: {
+                Label("添加第一个任务", systemImage: "plus")
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 8)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(BrandColors.accent)
+
+            Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(40)
-        .overlay(alignment: .bottomTrailing) {
-            Button { showAddSheet = true } label: {
-                Image(systemName: "plus")
-                    .font(.title2.weight(.semibold))
-                    .frame(width: 48, height: 48)
-            }
-            .buttonStyle(.plain)
-            .background(.ultraThinMaterial, in: Circle())
-            .shadow(color: .black.opacity(0.15), radius: 12, y: 4)
-            .padding(24)
-        }
     }
 
     // MARK: - Block List

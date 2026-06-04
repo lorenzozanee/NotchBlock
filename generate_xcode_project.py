@@ -29,6 +29,7 @@ files = [
     ("WeChatSettingsView.swift",    "NotchBlock/Views/WeChatSettingsView.swift"),
     ("StatisticsView.swift",        "NotchBlock/Views/StatisticsView.swift"),
     ("OnboardingView.swift",        "NotchBlock/Views/OnboardingView.swift"),
+    ("TimelineView.swift",          "NotchBlock/Views/TimelineView.swift"),
     ("DateExtensions.swift",        "NotchBlock/Utilities/DateExtensions.swift"),
     ("LaunchManager.swift",         "NotchBlock/Utilities/LaunchManager.swift"),
     ("BrandColors.swift",           "NotchBlock/Utilities/BrandColors.swift"),
@@ -130,7 +131,7 @@ def groups_section():
 \t\t{views_grp} = {{
 \t\t\tisa = PBXGroup;
 \t\t\tchildren = (
-{children(['MainSchedulerView.swift', 'TimeBlockRowView.swift', 'AddEditBlockView.swift', 'NotchPanelView.swift', 'OverlayView.swift', 'WeChatSettingsView.swift', 'StatisticsView.swift', 'OnboardingView.swift'])}
+{children(['MainSchedulerView.swift', 'TimeBlockRowView.swift', 'AddEditBlockView.swift', 'NotchPanelView.swift', 'OverlayView.swift', 'WeChatSettingsView.swift', 'StatisticsView.swift', 'OnboardingView.swift', 'TimelineView.swift'])}
 \t\t\t);
 \t\t\tpath = Views;
 \t\t\tsourceTree = "<group>";
