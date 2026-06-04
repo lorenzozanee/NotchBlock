@@ -58,12 +58,44 @@ final class StatisticsStore: ObservableObject {
         return streak
     }
 
+    // MARK: - Heatmap
+
+    var hourlyProductivity: [(hour: Int, rate: Double, count: Int)] {
+        var hourBuckets: [Int: (completed: Int, total: Int)] = [:]
+        for block in store.blocks {
+            let hour = Calendar.current.component(.hour, from: block.startTime)
+            var b = hourBuckets[hour] ?? (0, 0)
+            b.total += 1
+            if block.status == .completed { b.completed += 1 }
+            hourBuckets[hour] = b
+        }
+        return (0..<24).map { h in
+            let b = hourBuckets[h] ?? (0, 0)
+            return (h, b.total > 0 ? Double(b.completed) / Double(b.total) : 0, b.total)
+        }
+    }
+
+    var bestHour: (hour: Int, rate: Double)? {
+        hourlyProductivity.filter { $0.count >= 3 }.max { $0.rate < $1.rate }.map { ($0.hour, $0.rate) }
+    }
+
+    // MARK: - Monthly Trend
+
+    var weeklyTrend: [(label: String, rate: Double, completed: Int, total: Int)] {
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        return (0..<4).map { w in
+            guard let ws = cal.date(byAdding: .weekOfYear, value: -w, to: today),
+                  let we = cal.date(byAdding: .day, value: 6, to: ws)
+            else { return ("?", 0, 0, 0) }
+            let blocks = store.blocks.filter { $0.startTime >= ws && $0.startTime <= we }
+            let c = blocks.filter { $0.status == .completed }.count
+            let t = blocks.count
+            return (ws.weekdayLabel + "周", t > 0 ? Double(c) / Double(t) : 0, c, t)
+        }.reversed()
+    }
+
     // MARK: - Helpers
 
-    private func weekDayLabel(for date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "zh_CN")
-        formatter.dateFormat = "E"
-        return formatter.string(from: date)
-    }
+    private func weekDayLabel(for date: Date) -> String { date.weekdayLabel }
 }

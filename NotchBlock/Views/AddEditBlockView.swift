@@ -49,6 +49,7 @@ struct AddEditBlockView: View {
     private var formContent: some View {
         VStack(alignment: .leading, spacing: 16) {
             titleField
+            notesField
             timePickers
             conflictWarning
         }
@@ -61,6 +62,9 @@ struct AddEditBlockView: View {
             TextField("例如：深度工作、代码审查", text: $title)
                 .textFieldStyle(.roundedBorder)
         }
+    }
+
+    private var notesField: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text("备注 (可选)").font(.caption).foregroundStyle(.secondary)
             TextField("任务描述、目标、注意事项...", text: $notes)
