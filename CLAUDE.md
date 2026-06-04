@@ -72,8 +72,9 @@ Research → Red/Blue Adversarial → TDD → Implement → Review → Commit �
 
 | Component | Role |
 |-----------|------|
-| **NotchTracker** | Transparent borderless window at notch position, NSTrackingArea, 0.5s hover debounce. Disabled during fullscreen (CGWindowList). |
-| **NotchPanelController** | NSPanel with `.nonactivatingPanel`. Floats without stealing focus. |
+| **NotchTracker** | Transparent borderless window at notch position, NSTrackingArea, 0.5s hover debounce. Mutual exclusion when main window is open. Disabled during fullscreen (CGWindowList). |
+| **NotchPanelController** | NSPanel with `.nonactivatingPanel`. Dynamic height via `fittingSize`. 0.35s slide-in, 0.4s fade-out. Generation counter prevents show/hide race. |
+| **NotchPanelView** | Read-only glance card: active task countdown (28pt), upcoming tasks (max 5, scrollable), empty state, tap-to-open-main-window. Timer via `Timer.publish(.common)`. |
 | **OverlayWindowController** | `CGShieldingWindowLevel()` + `.fullScreenAuxiliary`. 5-min timeout → auto `.missed`. |
 | **BlockScheduler** | 1s polling, triggers overlay when `.pending` block's `endTime` passes. |
 | **TimeBlockStore** | UserDefaults ISO 8601 JSON. `@Published var blocks` for SwiftUI reactivity. |

@@ -5,6 +5,24 @@ All notable changes to NotchBlock will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.8] — 2026-06-04
+
+### Added
+
+- **NotchPanel V2 redesign:** Complete overhaul of the notch-triggered dropdown panel. Frosted-glass UI with 18px radius, gradient border, large 28pt countdown timer, dynamic height, empty state. Read-only glance surface — tap any task to open the main scheduler. Supports up to 5 upcoming tasks (scrollable). Mouse-on-panel keeps it visible; 0.5s leave debounce for gentle fade-out.
+- **Mutual exclusion:** Main scheduler window open → notch hover suppressed. No double-panel scenarios.
+- **Thread safety:** `NSScreen.main` hoisted to main thread before `CGWindowListCopyWindowInfo` background dispatch. Timer uses `Timer.publish(.common)` to prevent countdown freeze during tracking-area interactions.
+- **Show/hide race protection:** Generation counter prevents stale hide-completion from overriding a new show animation.
+
+### Fixed
+
+- **Menu bar "打开排程面板" unresponsive:** `WindowGroup` → `Window(id: "main")` + `@Environment(\.openWindow)`. Closed windows can now be reopened programmatically from the menu bar.
+- **Notch hover detection dead:** `ignoresMouseEvents = true` was blocking all `NSTrackingArea` callbacks. Set to `false` — tracking window is at notch position (no menu bar items underneath).
+
+### Changed
+
+- **Animation tuning:** Leave debounce 0.3s → 0.5s for slower, more natural dismissal. Panel fade-out 0.25s → 0.4s.
+
 ## [0.5.7] — 2026-06-04
 
 ### Added
