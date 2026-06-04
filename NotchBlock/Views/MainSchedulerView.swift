@@ -224,11 +224,10 @@ struct MainSchedulerView: View {
 
     private func setupKeyboardShortcuts() {
         guard keyMonitor == nil else { return }
-        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            guard let self else { return event }
+        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
             if event.modifierFlags.contains(.command),
                event.charactersIgnoringModifiers == "n" {
-                self.showAddSheet = true
+                DispatchQueue.main.async { self.showAddSheet = true }
                 return nil
             }
             return event
