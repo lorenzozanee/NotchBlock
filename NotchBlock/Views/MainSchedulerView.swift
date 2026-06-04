@@ -123,26 +123,36 @@ struct MainSchedulerView: View {
     // MARK: - Status Bar
 
     private var statusBar: some View {
-        HStack {
+        HStack(spacing: 16) {
             if let active = activeBlock {
                 Label("当前：\(active.title)", systemImage: "clock")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.caption).foregroundStyle(.secondary)
                 Spacer()
                 if let remaining = active.remainingTime {
                     Text("剩余 \(remaining.countdownString)")
-                        .font(.caption.monospacedDigit())
-                        .foregroundStyle(.green)
+                        .font(.caption.monospacedDigit()).foregroundStyle(.green)
                 }
             } else {
                 Label("暂无进行中的任务", systemImage: "moon.zzz")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
+                    .font(.caption).foregroundStyle(.tertiary)
                 Spacer()
             }
+
+            if let s = stats {
+                HStack(spacing: 8) {
+                    Label("\(s.todayCompleted)/\(s.todayTotal)", systemImage: "checkmark")
+                        .font(.caption).foregroundStyle(.green)
+                    Label(s.todayFocusTime.compactDuration, systemImage: "timer")
+                        .font(.caption).foregroundStyle(.blue)
+                    if s.currentStreak > 1 {
+                        Label("\(s.currentStreak)天", systemImage: "flame.fill")
+                            .font(.caption).foregroundStyle(.orange)
+                    }
+                }
+            }
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 20).padding(.vertical, 10)
+        .background(.bar)
     }
 
     // MARK: - Context Menu
@@ -155,6 +165,7 @@ struct MainSchedulerView: View {
             } label: {
                 Label("标记已完成", systemImage: "checkmark.circle")
             }
+            .sensoryFeedback(.success, trigger: block.status)
         }
         if block.status == .missed || block.status == .completed {
             Button {

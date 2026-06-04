@@ -85,8 +85,9 @@ final class TimeBlockStore: ObservableObject {
 
     // MARK: - Persistence
 
-    private func save() {
-        guard let data = try? encoder.encode(blocks) else { return }
+    func save() {
+        let capped = blocksCappedToWindow(days: 90)
+        guard let data = try? encoder.encode(capped) else { return }
         UserDefaults.standard.set(data, forKey: storageKey)
     }
 
@@ -97,6 +98,18 @@ final class TimeBlockStore: ObservableObject {
             blocks = []
             return
         }
-        blocks = decoded
+        blocks = blocksCappedToWindow(blocks: decoded, days: 90)
     }
+
+    /// Prunes blocks older than `days` to prevent UserDefaults bloat.
+    private func blocksCappedToWindow(blocks: [TimeBlock]? = nil, days: Int) -> [TimeBlock] {
+        let source = blocks ?? self.blocks
+        guard let cutoff = Calendar.current.date(byAdding: .day, value: -days, to: Date()) else {
+            return source
+        }
+        return source.filter { $0.endTime >= cutoff }
+    }
+
+    /// Total block count before capping (for statistics reference).
+    var totalHistoricalCount: Int { blocks.count }
 }
