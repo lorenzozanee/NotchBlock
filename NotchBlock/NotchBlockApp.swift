@@ -1,5 +1,6 @@
 import SwiftUI
 import UserNotifications
+import AppKit
 
 @main
 struct NotchBlockApp: App {
@@ -129,6 +130,10 @@ struct NotchBlockApp: App {
 
         Divider()
 
+        Button("导出数据...") {
+            exportData()
+        }
+
         Button("微信通知设置...") {
             showWeChatSettings = true
         }
@@ -205,6 +210,22 @@ struct NotchBlockApp: App {
     }
 
     // MARK: - Helpers
+
+    private func exportData() {
+        let savePanel = NSSavePanel()
+        savePanel.title = "导出时间块数据"
+        savePanel.nameFieldStringValue = "NotchBlock-备份-\(Date().timeString).json"
+        savePanel.allowedContentTypes = [.json]
+
+        savePanel.begin { response in
+            guard response == .OK, let url = savePanel.url else { return }
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+            encoder.dateEncodingStrategy = .iso8601
+            guard let data = try? encoder.encode(self.store.blocks) else { return }
+            try? data.write(to: url)
+        }
+    }
 
     private func quickAdd() {
         let title = quickAddTitle.trimmingCharacters(in: .whitespaces)
