@@ -159,8 +159,8 @@ struct NotchBlockApp: App {
 
     @ViewBuilder
     private var menuBarIcon: some View {
+        let pending = store.todayBlocks().filter { $0.status == .pending }.count
         if let active = store.activeBlock() {
-            // Show active indicator with remaining time
             if let remaining = active.remainingTime {
                 let minutes = Int(remaining / 60)
                 Image(systemName: "timer")
@@ -169,6 +169,11 @@ struct NotchBlockApp: App {
             } else {
                 Image(systemName: "timer")
             }
+        } else if pending > 0 {
+            Image(systemName: "calendar.badge.clock")
+            Text("\(pending)")
+                .font(.system(size: 9, weight: .bold, design: .monospaced))
+                .foregroundStyle(.secondary)
         } else {
             Image(systemName: "calendar.badge.clock")
         }
