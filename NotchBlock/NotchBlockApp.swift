@@ -10,6 +10,7 @@ struct NotchBlockApp: App {
     private let scheduler: BlockScheduler
     private let weChatNotifier: WeChatNotifier
     @State private var showWeChatSettings = false
+    @State private var quickAddTitle = ""
 
     init() {
         // 1. Initialize all stored properties first
@@ -98,6 +99,19 @@ struct NotchBlockApp: App {
             .padding(.vertical, 4)
             Divider()
         }
+
+        // Quick-add: type name → creates 30-min block starting now
+        HStack {
+            TextField("快速添加任务...", text: $quickAddTitle)
+                .textFieldStyle(.plain)
+                .frame(width: 140)
+                .onSubmit { quickAdd() }
+            Button("添加") { quickAdd() }
+                .disabled(quickAddTitle.trimmingCharacters(in: .whitespaces).isEmpty)
+        }
+        .padding(.horizontal, 4)
+
+        Divider()
 
         Button("打开排程面板") {
             openMainWindow()
@@ -191,6 +205,18 @@ struct NotchBlockApp: App {
     }
 
     // MARK: - Helpers
+
+    private func quickAdd() {
+        let title = quickAddTitle.trimmingCharacters(in: .whitespaces)
+        guard !title.isEmpty else { return }
+        let block = TimeBlock(
+            title: title,
+            startTime: Date(),
+            endTime: Date().addingTimeInterval(1800) // 30 min default
+        )
+        store.add(block)
+        quickAddTitle = ""
+    }
 
     private func openMainWindow() {
         // Activate app and bring scheduler window to front
