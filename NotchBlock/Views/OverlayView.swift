@@ -8,9 +8,12 @@ struct OverlayView: View {
     let block: TimeBlock
     let onCompleted: () -> Void
     let onAdjust: () -> Void
+    let onExtend: (TimeInterval) -> Void
 
     @State private var elapsedSeconds: Int = 0
     @State private var cardAppeared = false
+    @State private var customMinutes = ""
+    @State private var showCustomField = false
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     private let timeoutSeconds = 300
 
@@ -54,6 +57,43 @@ struct OverlayView: View {
                      .background(.white, in: RoundedRectangle(cornerRadius: 8))
                      .foregroundStyle(.black).fontWeight(.semibold)
                 }
+
+                VStack(spacing: 10) {
+                    Text("延长时间").font(.subheadline.weight(.medium)).foregroundStyle(.secondary)
+                    HStack(spacing: 12) {
+                        extendButton("+5 分钟", 300)
+                        extendButton("+10 分钟", 600)
+                        Button("自定义") {
+                            withAnimation(.snappy) { showCustomField.toggle() }
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.vertical, 6).padding(.horizontal, 14)
+                        .background(.quaternary, in: RoundedRectangle(cornerRadius: 6))
+                        .font(.caption)
+                    }
+                    if showCustomField {
+                        HStack(spacing: 8) {
+                            TextField("分钟数", text: $customMinutes)
+                                .textFieldStyle(.plain)
+                                .frame(width: 80)
+                                .padding(.vertical, 5).padding(.horizontal, 10)
+                                .background(.quaternary, in: RoundedRectangle(cornerRadius: 6))
+                                .font(.caption)
+                            Button("延长") {
+                                if let mins = Int(customMinutes), mins > 0 {
+                                    onExtend(TimeInterval(mins * 60))
+                                    customMinutes = ""
+                                    showCustomField = false
+                                }
+                            }
+                            .buttonStyle(.plain)
+                            .padding(.vertical, 5).padding(.horizontal, 12)
+                            .background(BrandColors.accent, in: RoundedRectangle(cornerRadius: 6))
+                            .foregroundStyle(.white).font(.caption)
+                            .disabled(Int(customMinutes) == nil || (Int(customMinutes) ?? 0) <= 0)
+                        }
+                    }
+                }
             }
             .padding(40)
             .background(RoundedRectangle(cornerRadius: 24).fill(.ultraThinMaterial))
@@ -68,6 +108,15 @@ struct OverlayView: View {
         .onAppear {
             withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) { cardAppeared = true }
         }
+    }
+
+    private func extendButton(_ label: String, _ seconds: TimeInterval) -> some View {
+        Button(label) { onExtend(seconds) }
+            .buttonStyle(.plain)
+            .padding(.vertical, 6).padding(.horizontal, 14)
+            .background(BrandColors.accent.opacity(0.15), in: RoundedRectangle(cornerRadius: 6))
+            .foregroundStyle(BrandColors.accent)
+            .font(.caption.weight(.medium))
     }
 
     private var remainingFormatted: String {
@@ -88,7 +137,8 @@ struct OverlayView: View {
             status: .pending
         ),
         onCompleted: {},
-        onAdjust: {}
+        onAdjust: {},
+        onExtend: { _ in }
     )
 }
 #endif

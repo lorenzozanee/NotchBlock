@@ -50,6 +50,14 @@ extension TimeBlock {
     func with(status: BlockStatus) -> TimeBlock {
         TimeBlock(id: id, title: title, startTime: startTime, endTime: endTime, status: status, notes: notes, isBreak: isBreak)
     }
+
+    func withEndTime(_ newEnd: Date) -> TimeBlock {
+        TimeBlock(id: id, title: title, startTime: startTime, endTime: newEnd, status: status, notes: notes, isBreak: isBreak)
+    }
+
+    func withStartTime(_ newStart: Date) -> TimeBlock {
+        TimeBlock(id: id, title: title, startTime: newStart, endTime: endTime, status: status, notes: notes, isBreak: isBreak)
+    }
 }
 
 // MARK: - Computed Properties
