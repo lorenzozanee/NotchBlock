@@ -98,12 +98,7 @@ def prepare_staging(app_path):
 
     shutil.copytree(app_path, STAGING_DIR / "NotchBlock.app", symlinks=True)
 
-    cmd_src = PROJECT_DIR / "scripts" / "FixQuarantine.command"
-    cmd_dst = STAGING_DIR / "FixQuarantine.command"
-    shutil.copy2(cmd_src, cmd_dst)
-    os.chmod(cmd_dst, 0o755)
-
-    print(f"   Staged: NotchBlock.app, FixQuarantine.command\n")
+    print(f"   Staged: NotchBlock.app\n")
     return STAGING_DIR
 
 
@@ -114,13 +109,11 @@ def build_dmg(staging_dir, version):
         dmg_path.unlink()
 
     settings = {
-        "files": [str(staging_dir / "NotchBlock.app"),
-                   str(staging_dir / "FixQuarantine.command")],
+        "files": [str(staging_dir / "NotchBlock.app")],
         "symlinks": {"Applications": "/Applications"},
         "icon_locations": {
             "NotchBlock.app": (160, 180),
             "Applications": (480, 180),
-            "FixQuarantine.command": (160, 310),
         },
         "background": str(BACKGROUND_SRC),
         "window_rect": WINDOW_RECT,
@@ -172,9 +165,9 @@ def main():
     print(f"\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     print(f"📦 安装流程")
     print(f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-    print(f"   1. 拖入 NotchBlock.app → Applications")
-    print(f"   2. 双击 FixQuarantine.command")
-    print(f"   3. 从 Applications 打开 NotchBlock")
+    print(f"   1. 将 NotchBlock 拖入 Applications")
+    print(f"   2. 终端运行: xattr -cr /Applications/NotchBlock.app")
+    print(f"   3. 打开 NotchBlock (或终端: open /Applications/NotchBlock.app)")
     print(f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
 
