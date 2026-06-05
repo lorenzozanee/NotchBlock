@@ -18,6 +18,7 @@ final class OverlayWindowController: ObservableObject {
     var onMarkMissed: ((TimeBlock) -> Void)?
     var onAdjustSchedule: (() -> Void)?
     var onExtendBlock: ((TimeBlock, TimeInterval, Bool) -> Void)?
+    var subsequentTaskCountProvider: (() -> Int)?
 
     // MARK: - Sound
 
@@ -61,8 +62,10 @@ final class OverlayWindowController: ObservableObject {
         panel.hidesOnDeactivate = false
         panel.canHide = false
 
+        let count = subsequentTaskCountProvider?() ?? 0
         let overlayView = OverlayView(
             block: block,
+            subsequentTaskCount: count,
             onCompleted: { [weak self] in self?.handleCompleted() },
             onAdjust: { [weak self] in self?.handleAdjust() },
             onExtend: { [weak self] seconds, shiftAll in self?.handleExtend(seconds, shiftAll: shiftAll) }

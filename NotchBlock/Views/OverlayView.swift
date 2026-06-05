@@ -6,6 +6,7 @@ import SwiftUI
 /// [已完成] / [去调整计划] buttons, and a live 5-minute countdown.
 struct OverlayView: View {
     let block: TimeBlock
+    let subsequentTaskCount: Int
     let onCompleted: () -> Void
     let onAdjust: () -> Void
     let onExtend: (TimeInterval, Bool) -> Void
@@ -87,7 +88,8 @@ struct OverlayView: View {
                     }
 
                     Toggle(isOn: $shiftAllSubsequent) {
-                        Text("推迟所有后续任务").font(.caption)
+                        Text("推迟所有后续任务\(subsequentTaskCount > 0 ? "（\(subsequentTaskCount)个）" : "")")
+                            .font(.caption)
                     }
                     .toggleStyle(.checkbox)
                     .foregroundStyle(.secondary)
@@ -157,6 +159,7 @@ struct OverlayView: View {
             endTime: Date(),
             status: .pending
         ),
+        subsequentTaskCount: 2,
         onCompleted: {},
         onAdjust: {},
         onExtend: { _,_  in }

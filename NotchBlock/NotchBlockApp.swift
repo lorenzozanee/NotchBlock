@@ -103,6 +103,11 @@ struct NotchBlockApp: App {
         overlayCtrl.onMarkCompleted = { store.update($0.with(status: .completed)) }
         overlayCtrl.onMarkMissed = { store.update($0.with(status: .missed)) }
 
+        overlayCtrl.subsequentTaskCountProvider = {
+            let today = store.todayBlocks().sorted { $0.startTime < $1.startTime }
+            return today.filter { $0.startTime >= (today.first?.endTime ?? Date()) }.count
+        }
+
         overlayCtrl.onAdjustSchedule = {
             NotificationCenter.default.post(name: .openMainWindow, object: nil)
         }
