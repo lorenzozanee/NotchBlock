@@ -77,10 +77,10 @@ struct NotchBlockApp: App {
         overlayController.requestNotificationPermission()
         overlayController.scheduleDailySummary(stats: stats)
 
-        // 4. SwiftUI Window scenes show by default — hide the main window after
-        //    launch so notch tracking isn't permanently blocked. The window
-        //    reopens on demand via menu bar "打开排程面板" or notch panel tap.
+        // 4. Hide the main window after launch — unless first run needs onboarding.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            let needsOnboarding = !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+            guard !needsOnboarding else { return }
             for window in NSApp.windows where window.identifier?.rawValue == "main" {
                 window.close()
             }
