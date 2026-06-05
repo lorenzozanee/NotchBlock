@@ -5,6 +5,18 @@ All notable changes to NotchBlock will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.3] — 2026-06-05
+
+### Added
+
+- **DMG 安装界面:** 自定义背景图 + `FixQuarantine.command` 一键移除隔离标记并启动
+
+### Changed
+
+- **README:** 更新为三步安装流程
+
+---
+
 ## [0.6.2] — 2026-06-05
 
 ### Added
@@ -12,12 +24,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Auto-update:** Checks GitHub Releases every 6h, one-click download + install + relaunch
 - **Extend time block:** +5min/+10min/custom buttons on timeout overlay; shifts subsequent tasks
 - **Shift-all toggle:** Push all subsequent tasks with affected count display
+- **DMG installer:** Custom background with 3-step visual guide, `FixQuarantine.command` one-click quarantine removal + launch helper
 
 ### Changed
 
 - **Timeline:** Column layout prevents overlapping blocks; adaptive height
 - **Notch detection:** Instant panel trigger (0.0s debounce)
 - **Live timers:** Menu bar countdown ticks every 1s; toggleable
+- **README:** Updated install instructions for 3-step DMG flow
 
 ---
 

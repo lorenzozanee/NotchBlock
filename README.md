@@ -36,39 +36,32 @@ NotchBlock 是一款极简但**强制执行**的时间块（Time-Blocking）日�
 
 ## 📥 安装
 
-### 下载 DMG
-
 从 [Releases](https://github.com/lorenzozanee/NotchBlock/releases) 页面下载最新 `NotchBlock-*.dmg`。
 
-1. 双击挂载 DMG，拖入 `Applications` 文件夹
-2. 如果弹出「Apple 无法验证」警告，运行以下命令移除隔离标记：
-   ```bash
-   xattr -cr /Applications/NotchBlock.app
-   ```
-3. 应用启动后，菜单栏会出现日历图标 📅
-4. 排程窗口会自动弹出，同时发送一条欢迎通知
-5. 在 **系统设置 → 隐私与安全性 → 辅助功能** 中授权（全屏检测需要）
+### 三步安装
 
-> 💡 NotchBlock 是后台应用（无 Dock 图标），通过菜单栏图标访问。**鼠标悬停 Mac 刘海**可快速预览今日任务（倒计时 + 接下来 5 个任务），点击任意任务跳转排程面板编辑。
+打开 DMG 后，按照窗口背景提示操作：
 
-### 从源码构建
+1. **拖入 Applications** — 将 `NotchBlock.app` 拖到 `Applications` 文件夹
+2. **双击 `FixQuarantine.command`** — 一键移除隔离标记并启动应用（首次需右键→打开）
+3. **完成** — 菜单栏会出现图标，开始使用
 
-```bash
-# 要求: Xcode 16.4+, macOS 14.0+
-git clone https://github.com/lorenzozanee/NotchBlock.git
-cd NotchBlock
-open NotchBlock.xcodeproj
-# ⌘R 构建并运行
-```
+> 💡 为什么需要第 2 步？NotchBlock 未经过 Apple 公证（需要 $99/年 的开发者账号），macOS 会对下载的应用标记隔离属性。`FixQuarantine.command` 会自动执行 `xattr -cr /Applications/NotchBlock.app` 移除此标记。
 
-## 🔧 系统权限
-
-首次运行时需要授予以下权限：
+首次运行后需授权：
 
 | 权限 | 用途 | 设置路径 |
 |---|---|---|
 | **辅助功能** (Accessibility) | 检测全屏应用状态 | 系统设置 → 隐私与安全性 → 辅助功能 |
 | **通知** (Notifications) | 任务超时提醒 | 系统设置 → 通知 → NotchBlock |
+
+### 手动安装
+
+```bash
+# 如果 DMG 内的脚本无法运行，手动执行：
+xattr -cr /Applications/NotchBlock.app
+open /Applications/NotchBlock.app
+```
 
 ## 🏗️ 技术架构
 
