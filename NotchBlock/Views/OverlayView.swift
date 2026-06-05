@@ -15,6 +15,13 @@ struct OverlayView: View {
     @State private var customMinutes = ""
     @State private var showCustomField = false
     @State private var shiftAllSubsequent = false
+    @State private var extendedLabel: String?
+
+    private func doExtend(_ seconds: TimeInterval) {
+        let mins = Int(seconds / 60)
+        extendedLabel = "已延长 \(mins) 分钟"
+        onExtend(seconds, shiftAllSubsequent)
+    }
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     private let timeoutSeconds = 300
 
@@ -72,6 +79,13 @@ struct OverlayView: View {
                         .background(.quaternary, in: RoundedRectangle(cornerRadius: 6))
                         .font(.caption)
                     }
+                    if let label = extendedLabel {
+                        Text(label)
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(.green)
+                            .transition(.opacity)
+                    }
+
                     Toggle(isOn: $shiftAllSubsequent) {
                         Text("推迟所有后续任务").font(.caption)
                     }
@@ -88,7 +102,7 @@ struct OverlayView: View {
                                 .font(.caption)
                             Button("延长") {
                                 if let mins = Int(customMinutes), mins > 0 {
-                                    onExtend(TimeInterval(mins * 60), shiftAllSubsequent)
+                                    doExtend(TimeInterval(mins * 60))
                                     customMinutes = ""
                                     showCustomField = false
                                 }
@@ -118,7 +132,7 @@ struct OverlayView: View {
     }
 
     private func extendButton(_ label: String, _ seconds: TimeInterval) -> some View {
-        Button(label) { onExtend(seconds, shiftAllSubsequent) }
+        Button(label) { doExtend(seconds) }
             .buttonStyle(.plain)
             .padding(.vertical, 6).padding(.horizontal, 14)
             .background(BrandColors.accent.opacity(0.15), in: RoundedRectangle(cornerRadius: 6))
