@@ -13,7 +13,7 @@ BUILD_DIR = PROJECT_DIR / "build"
 STAGING_DIR = BUILD_DIR / "staging_dmg"
 BACKGROUND_SRC = BUILD_DIR / "dmg_background.png"
 
-WINDOW_RECT = ((400, 200), (640, 400))
+WINDOW_RECT = ((400, 200), (640, 380))
 ICON_SIZE = 80
 TEXT_SIZE = 13
 
@@ -84,17 +84,15 @@ def prepare_staging(app_path):
     return STAGING_DIR
 
 
-def hide_background_in_dmg(dmg_path):
-    """Mount DMG, set invisible flag on .background.png, unmount."""
-    print("👻 Hiding background file...")
+def hide_system_files(dmg_path):
+    """Mount DMG, hide .background.png + remove .fseventsd, unmount."""
+    print("👻 Cleaning system files...")
 
-    # Convert to writable
     tmp = BUILD_DIR / "NotchBlock-tmp.dmg"
     if tmp.exists():
         tmp.unlink()
     run(["hdiutil", "convert", str(dmg_path), "-format", "UDRW", "-o", str(tmp)])
 
-    # Mount
     r = run(["hdiutil", "attach", str(tmp), "-readwrite",
              "-noverify", "-noautoopen"])
     mp = None
@@ -104,21 +102,34 @@ def hide_background_in_dmg(dmg_path):
             break
     assert mp, "Mount failed"
 
-    # Hide
-    bg = Path(mp) / ".background.png"
-    assert bg.exists(), f"No .background.png at {bg}"
-    run(["SetFile", "-a", "V", str(bg)])
+    mpp = Path(mp)
 
-    # Unmount
+    # Hide background image
+    bg = mpp / ".background.png"
+    if bg.exists():
+        run(["SetFile", "-a", "V", str(bg)])
+
+    # Remove .fseventsd (macOS creates this on mount, not needed)
+    fse = mpp / ".fseventsd"
+    if fse.exists():
+        run(["rm", "-rf", str(fse)])
+
+    # Also hide any other dotfiles
+    for item in mpp.iterdir():
+        if item.name.startswith(".") and item.name not in (".DS_Store", ".background.png"):
+            if item.is_dir():
+                run(["rm", "-rf", str(item)])
+            else:
+                run(["SetFile", "-a", "V", str(item)])
+
     run(["hdiutil", "detach", mp, "-force"])
 
-    # Re-compress
     if dmg_path.exists():
         dmg_path.unlink()
     run(["hdiutil", "convert", str(tmp), "-format", "UDZO",
          "-imagekey", "zlib-level=9", "-o", str(dmg_path)])
     tmp.unlink()
-    print("   ✅ Hidden\n")
+    print("   ✅ Clean\n")
 
 
 def build_dmg(staging_dir, version):
@@ -136,8 +147,8 @@ def build_dmg(staging_dir, version):
             "files": [str(staging_dir / "NotchBlock.app")],
             "symlinks": {"Applications": "/Applications"},
             "icon_locations": {
-                "NotchBlock.app": (160, 100),
-                "Applications": (480, 100),
+                "NotchBlock.app": (200, 90),
+                "Applications": (440, 90),
             },
             "background": str(BACKGROUND_SRC),
             "window_rect": WINDOW_RECT,
@@ -153,8 +164,8 @@ def build_dmg(staging_dir, version):
         },
     )
 
-    # Post-process: properly hide background file
-    hide_background_in_dmg(dmg_path)
+    # Post-process: hide .background.png, remove .fseventsd
+    hide_system_files(dmg_path)
 
     return dmg_path
 
