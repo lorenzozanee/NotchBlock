@@ -14,6 +14,7 @@
 		7644BA616FBCF421D1A1ECDC /* NotchTracker.swift */ = {isa = PBXBuildFile; fileRef = 29277D297998F7E6FB6F5F62 /* NotchTracker.swift */; };
 		C9837466F3C579E56F3068BD /* NotchPanelController.swift */ = {isa = PBXBuildFile; fileRef = 8029C4F7FC61995D8B4CE4D6 /* NotchPanelController.swift */; };
 		15F109F398E0B965595113EF /* OverlayWindowController.swift */ = {isa = PBXBuildFile; fileRef = F9BBB253B58E64373130DCA9 /* OverlayWindowController.swift */; };
+		8F039BF1E6CDEF905A17E946 /* OnboardingWindowController.swift */ = {isa = PBXBuildFile; fileRef = 2A37D7EE1051E51ACF5FBDE8 /* OnboardingWindowController.swift */; };
 		B3D75FCDC0095A4D0260E1C8 /* BlockScheduler.swift */ = {isa = PBXBuildFile; fileRef = 7350155EDA5DB8476A4BC699 /* BlockScheduler.swift */; };
 		33DBB9FF474E706498793066 /* BreakScheduler.swift */ = {isa = PBXBuildFile; fileRef = 5BE6271F4A22EC4C768361D7 /* BreakScheduler.swift */; };
 		3981874C54C3C832728AC378 /* WeChatNotifier.swift */ = {isa = PBXBuildFile; fileRef = B35A4B0B43F020AEC131D9B7 /* WeChatNotifier.swift */; };
@@ -42,6 +43,7 @@
 		29277D297998F7E6FB6F5F62 /* NotchTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NotchTracker.swift"; sourceTree = "<group>"; };
 		8029C4F7FC61995D8B4CE4D6 /* NotchPanelController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NotchPanelController.swift"; sourceTree = "<group>"; };
 		F9BBB253B58E64373130DCA9 /* OverlayWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverlayWindowController.swift"; sourceTree = "<group>"; };
+		2A37D7EE1051E51ACF5FBDE8 /* OnboardingWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OnboardingWindowController.swift"; sourceTree = "<group>"; };
 		7350155EDA5DB8476A4BC699 /* BlockScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BlockScheduler.swift"; sourceTree = "<group>"; };
 		5BE6271F4A22EC4C768361D7 /* BreakScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BreakScheduler.swift"; sourceTree = "<group>"; };
 		B35A4B0B43F020AEC131D9B7 /* WeChatNotifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WeChatNotifier.swift"; sourceTree = "<group>"; };
@@ -95,6 +97,7 @@
 				29277D297998F7E6FB6F5F62 /* NotchTracker.swift */,
 				8029C4F7FC61995D8B4CE4D6 /* NotchPanelController.swift */,
 				F9BBB253B58E64373130DCA9 /* OverlayWindowController.swift */,
+				2A37D7EE1051E51ACF5FBDE8 /* OnboardingWindowController.swift */,
 				7350155EDA5DB8476A4BC699 /* BlockScheduler.swift */,
 				5BE6271F4A22EC4C768361D7 /* BreakScheduler.swift */,
 				B35A4B0B43F020AEC131D9B7 /* WeChatNotifier.swift */,
@@ -210,6 +213,7 @@
 				7644BA616FBCF421D1A1ECDC /* NotchTracker.swift in Sources */,
 				C9837466F3C579E56F3068BD /* NotchPanelController.swift in Sources */,
 				15F109F398E0B965595113EF /* OverlayWindowController.swift in Sources */,
+				8F039BF1E6CDEF905A17E946 /* OnboardingWindowController.swift in Sources */,
 				B3D75FCDC0095A4D0260E1C8 /* BlockScheduler.swift in Sources */,
 				33DBB9FF474E706498793066 /* BreakScheduler.swift in Sources */,
 				3981874C54C3C832728AC378 /* WeChatNotifier.swift in Sources */,

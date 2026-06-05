@@ -17,8 +17,8 @@ struct NotchBlockApp: App {
     private let weChatNotifier: WeChatNotifier
     private let breakScheduler: BreakScheduler
     private let statsStore: StatisticsStore
+    private let onboardingWC = OnboardingWindowController()
     @State private var showWeChatSettings = false
-    @State private var showOnboarding = false
     @State private var quickAddTitle = ""
     @AppStorage("menuBarIconStyle") private var iconStyle = "timer"
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
@@ -77,10 +77,12 @@ struct NotchBlockApp: App {
         overlayController.requestNotificationPermission()
         overlayController.scheduleDailySummary(stats: stats)
 
-        // 4. Hide the main window after launch — unless first run needs onboarding.
+        // 4. Show onboarding if first launch, then hide the main window.
+        if !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding") {
+            onboardingWC.show(store: store)
+        }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            let needsOnboarding = !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
-            guard !needsOnboarding else { return }
+            guard UserDefaults.standard.bool(forKey: "hasCompletedOnboarding") else { return }
             for window in NSApp.windows where window.identifier?.rawValue == "main" {
                 window.close()
             }
@@ -109,16 +111,6 @@ struct NotchBlockApp: App {
         // Main scheduler window — explicitly managed via id for programmatic reopen
         Window("排程面板", id: "main") {
             MainSchedulerView(store: store, stats: statsStore)
-                .onAppear {
-                    if !hasCompletedOnboarding {
-                        showOnboarding = true
-                    }
-                }
-                .sheet(isPresented: $showOnboarding) {
-                    OnboardingView {
-                        createSampleBlocks()
-                    }
-                }
                 .sheet(isPresented: $showWeChatSettings) {
                     WeChatSettingsView(notifier: weChatNotifier)
                 }
@@ -260,21 +252,6 @@ struct NotchBlockApp: App {
         } else {
             Image(systemName: style.systemImage)
         }
-    }
-
-    // MARK: - First Launch
-
-    private func createSampleBlocks() {
-        guard store.todayBlocks().isEmpty else { return }
-        let cal = Calendar.current
-        let now = Date()
-        let start = cal.startOfDay(for: now)
-        let blocks: [TimeBlock] = [
-            TimeBlock(title: "晨间规划", startTime: cal.date(byAdding: .hour, value: 9, to: start)!, endTime: cal.date(byAdding: .hour, value: 9, to: start)!.addingTimeInterval(900), status: .completed),
-            TimeBlock(title: "深度工作", startTime: cal.date(byAdding: .hour, value: 10, to: start)!, endTime: cal.date(byAdding: .hour, value: 12, to: start)!, status: .pending),
-            TimeBlock(title: "午休", startTime: cal.date(byAdding: .hour, value: 12, to: start)!, endTime: cal.date(byAdding: .hour, value: 13, to: start)!, status: .pending),
-        ]
-        for b in blocks { store.add(b) }
     }
 
     // MARK: - Helpers

@@ -17,6 +17,7 @@ files = [
     ("NotchTracker.swift",          "NotchBlock/Managers/NotchTracker.swift"),
     ("NotchPanelController.swift",  "NotchBlock/Managers/NotchPanelController.swift"),
     ("OverlayWindowController.swift","NotchBlock/Managers/OverlayWindowController.swift"),
+    ("OnboardingWindowController.swift","NotchBlock/Managers/OnboardingWindowController.swift"),
     ("BlockScheduler.swift",        "NotchBlock/Managers/BlockScheduler.swift"),
     ("BreakScheduler.swift",        "NotchBlock/Managers/BreakScheduler.swift"),
     ("WeChatNotifier.swift",        "NotchBlock/Managers/WeChatNotifier.swift"),
@@ -123,7 +124,7 @@ def groups_section():
 \t\t{managers_grp} = {{
 \t\t\tisa = PBXGroup;
 \t\t\tchildren = (
-{children(['TimeBlockStore.swift', 'NotchTracker.swift', 'NotchPanelController.swift', 'OverlayWindowController.swift', 'BlockScheduler.swift', 'BreakScheduler.swift', 'WeChatNotifier.swift', 'StatisticsStore.swift'])}
+{children(['TimeBlockStore.swift', 'NotchTracker.swift', 'NotchPanelController.swift', 'OverlayWindowController.swift', 'OnboardingWindowController.swift', 'BlockScheduler.swift', 'BreakScheduler.swift', 'WeChatNotifier.swift', 'StatisticsStore.swift'])}
 \t\t\t);
 \t\t\tpath = Managers;
 \t\t\tsourceTree = "<group>";
