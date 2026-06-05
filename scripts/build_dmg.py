@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-"""Build a NotchBlock DMG using dmgbuild + post-processing to hide background."""
+"""Build NotchBlock DMG — clean, no hidden files, no background image."""
 
 import argparse
-import os
 import shutil
 import subprocess
 import sys
@@ -11,19 +10,16 @@ from pathlib import Path
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 BUILD_DIR = PROJECT_DIR / "build"
 STAGING_DIR = BUILD_DIR / "staging_dmg"
-BACKGROUND_SRC = BUILD_DIR / "dmg_background.png"
 
-WINDOW_RECT = ((400, 200), (640, 380))
+WINDOW_RECT = ((400, 200), (500, 300))
 ICON_SIZE = 80
 TEXT_SIZE = 13
 
 
-def run(cmd, **kwargs):
-    print(f"  → {' '.join(cmd) if isinstance(cmd, list) else cmd}")
-    r = subprocess.run(cmd, cwd=PROJECT_DIR, capture_output=True, text=True, **kwargs)
-    if kwargs.get("check", True) and r.returncode != 0:
-        print(r.stderr)
-        sys.exit(r.returncode)
+def run(cmd, **kw):
+    r = subprocess.run(cmd, cwd=PROJECT_DIR, capture_output=True, text=True, **kw)
+    if kw.get("check", True) and r.returncode != 0:
+        print(r.stderr); sys.exit(r.returncode)
     return r
 
 
@@ -33,124 +29,81 @@ def get_version():
 
 
 def step_build():
-    print("🔨 Building Release...")
-    subprocess.run(
-        ["xcodebuild", "-project", "NotchBlock.xcodeproj",
-         "-scheme", "NotchBlock", "-configuration", "Release",
-         "-derivedDataPath", str(BUILD_DIR), "build",
-         "CODE_SIGN_IDENTITY=-", "CODE_SIGNING_REQUIRED=NO",
-         "CODE_SIGNING_ALLOWED=NO"],
-        cwd=PROJECT_DIR, check=True)
-    print("   ✅ BUILD SUCCEEDED\n")
+    print("🔨 Building...")
+    subprocess.run([
+        "xcodebuild", "-project", "NotchBlock.xcodeproj",
+        "-scheme", "NotchBlock", "-configuration", "Release",
+        "-derivedDataPath", str(BUILD_DIR), "build",
+        "CODE_SIGN_IDENTITY=-", "CODE_SIGNING_REQUIRED=NO",
+        "CODE_SIGNING_ALLOWED=NO",
+    ], cwd=PROJECT_DIR, check=True)
+    print("   ✅\n")
 
 
 def find_app():
     apps = list((BUILD_DIR / "Build/Products/Release").glob("*.app"))
-    if not apps:
-        print("❌ No .app found")
-        sys.exit(1)
-    print(f"✅ App: {apps[0]}")
+    if not apps: print("❌ No .app"); sys.exit(1)
+    print(f"✅ {apps[0]}")
     return apps[0]
 
 
-def step_sign(app_path):
+def step_sign(app):
     print("🔐 Signing...")
-    ent = PROJECT_DIR / "entitlements.plist"
+    e = PROJECT_DIR / "entitlements.plist"
     subprocess.run([
         "codesign", "--force", "--deep", "--sign", "-",
-        "--options", "runtime", "--entitlements", str(ent),
-        "--timestamp=none", str(app_path),
+        "--options", "runtime", "--entitlements", str(e),
+        "--timestamp=none", str(app),
     ], cwd=PROJECT_DIR, check=True)
-    print("   ✅ Signed\n")
+    print("   ✅\n")
 
 
-def step_background():
-    print("🎨 Background...")
-    subprocess.run([
-        sys.executable,
-        str(PROJECT_DIR / "scripts/generate_dmg_background.py"),
-    ], cwd=PROJECT_DIR, check=True)
-    assert BACKGROUND_SRC.exists()
-    print()
-
-
-def prepare_staging(app_path):
+def prepare_staging(app):
     print("📦 Staging...")
     if STAGING_DIR.exists():
         shutil.rmtree(STAGING_DIR)
     STAGING_DIR.mkdir(parents=True)
-    shutil.copytree(app_path, STAGING_DIR / "NotchBlock.app", symlinks=True)
-    print("   ✅ NotchBlock.app\n")
+    shutil.copytree(app, STAGING_DIR / "NotchBlock.app", symlinks=True)
+
+    # Create install guide as a visible text file
+    guide = """NotchBlock 安装说明
+
+三步安装：
+
+1. 将 NotchBlock.app 拖入 Applications 文件夹
+
+2. 打开终端 (Terminal)，运行：
+   xattr -cr /Applications/NotchBlock.app
+
+3. 在 Applications 中打开 NotchBlock，
+   或在终端运行: open /Applications/NotchBlock.app
+
+---
+未经 Apple 公证，首次打开需移除隔离标记。
+"""
+    (STAGING_DIR / "安装说明.txt").write_text(guide, encoding="utf-8")
+    print("   ✅\n")
     return STAGING_DIR
 
 
-def hide_system_files(dmg_path):
-    """Mount DMG, hide .background.png + remove .fseventsd, unmount."""
-    print("👻 Cleaning system files...")
-
-    tmp = BUILD_DIR / "NotchBlock-tmp.dmg"
-    if tmp.exists():
-        tmp.unlink()
-    run(["hdiutil", "convert", str(dmg_path), "-format", "UDRW", "-o", str(tmp)])
-
-    r = run(["hdiutil", "attach", str(tmp), "-readwrite",
-             "-noverify", "-noautoopen"])
-    mp = None
-    for line in r.stdout.split("\n"):
-        if "Apple_HFS" in line:
-            mp = line.split("\t")[-1].strip()
-            break
-    assert mp, "Mount failed"
-
-    mpp = Path(mp)
-
-    # Hide background image
-    bg = mpp / ".background.png"
-    if bg.exists():
-        run(["SetFile", "-a", "V", str(bg)])
-
-    # Remove .fseventsd (macOS creates this on mount, not needed)
-    fse = mpp / ".fseventsd"
-    if fse.exists():
-        run(["rm", "-rf", str(fse)])
-
-    # Also hide any other dotfiles
-    for item in mpp.iterdir():
-        if item.name.startswith(".") and item.name not in (".DS_Store", ".background.png"):
-            if item.is_dir():
-                run(["rm", "-rf", str(item)])
-            else:
-                run(["SetFile", "-a", "V", str(item)])
-
-    run(["hdiutil", "detach", mp, "-force"])
-
-    if dmg_path.exists():
-        dmg_path.unlink()
-    run(["hdiutil", "convert", str(tmp), "-format", "UDZO",
-         "-imagekey", "zlib-level=9", "-o", str(dmg_path)])
-    tmp.unlink()
-    print("   ✅ Clean\n")
-
-
-def build_dmg(staging_dir, version):
+def build_dmg(staging, version):
     import dmgbuild
-
     print("📀 Creating DMG...")
-    dmg_path = BUILD_DIR / f"NotchBlock-{version}.dmg"
-    if dmg_path.exists():
-        dmg_path.unlink()
-
+    p = BUILD_DIR / f"NotchBlock-{version}.dmg"
+    if p.exists(): p.unlink()
     dmgbuild.build_dmg(
-        filename=str(dmg_path),
-        volume_name="NotchBlock",
+        filename=str(p), volume_name="NotchBlock",
         settings={
-            "files": [str(staging_dir / "NotchBlock.app")],
+            "files": [
+                str(staging / "NotchBlock.app"),
+                str(staging / "安装说明.txt"),
+            ],
             "symlinks": {"Applications": "/Applications"},
             "icon_locations": {
-                "NotchBlock.app": (200, 90),
-                "Applications": (440, 90),
+                "NotchBlock.app": (140, 90),
+                "安装说明.txt": (260, 90),
+                "Applications": (380, 90),
             },
-            "background": str(BACKGROUND_SRC),
             "window_rect": WINDOW_RECT,
             "default_view": "icon-view",
             "icon_size": ICON_SIZE,
@@ -163,38 +116,25 @@ def build_dmg(staging_dir, version):
             "filesystem": "HFS+",
         },
     )
-
-    # Post-process: hide .background.png, remove .fseventsd
-    hide_system_files(dmg_path)
-
-    return dmg_path
+    return p
 
 
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--dmg-only", action="store_true")
     a = p.parse_args()
-
     ver = get_version()
-    print(f"📦 NotchBlock DMG Builder — {ver}\n")
+    print(f"📦 NotchBlock DMG — {ver}\n")
 
     if a.dmg_only:
         app = find_app()
     else:
-        step_build()
-        app = find_app()
-        step_sign(app)
+        step_build(); app = find_app(); step_sign(app)
 
-    step_background()
     staging = prepare_staging(app)
     dmg = build_dmg(staging, ver)
     shutil.rmtree(staging, ignore_errors=True)
-
-    kb = dmg.stat().st_size / 1024
-    print(f"✅ {dmg} ({kb:.0f} KB)")
-    print(f"   1. 拖入 Applications")
-    print(f"   2. 终端: xattr -cr /Applications/NotchBlock.app")
-    print(f"   3. open /Applications/NotchBlock.app")
+    print(f"✅ {dmg} ({dmg.stat().st_size / 1024:.0f} KB)")
 
 
 if __name__ == "__main__":
