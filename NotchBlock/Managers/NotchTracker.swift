@@ -30,7 +30,7 @@ final class NotchTracker {
     /// Narrow enough to require deliberate cursor push; 10 Hz polling gives
     /// ~5 consecutive in-zone readings within 500 ms debounce.
     private static let triggerZoneHeight: CGFloat = 5
-    private static let hoverDebounce: TimeInterval = 0.5
+    private static let hoverDebounce: TimeInterval = 0.0
     private static let leaveDebounce: TimeInterval = 0.5
     private static let pollInterval: TimeInterval = 0.1
 

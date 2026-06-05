@@ -22,6 +22,7 @@ struct NotchBlockApp: App {
     @State private var quickAddTitle = ""
     @AppStorage("menuBarIconStyle") private var iconStyle = "timer"
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    @AppStorage("showTimeInMenuBar") private var showTimeInMenuBar = true
 
     enum IconStyle: String, CaseIterable {
         case timer = "timer"
@@ -122,7 +123,7 @@ struct NotchBlockApp: App {
         MenuBarExtra {
             menuBarContent
         } label: {
-            menuBarIcon
+            MenuBarIconView(store: store, iconStyle: iconStyle, showTime: showTimeInMenuBar)
         }
     }
 
@@ -197,6 +198,12 @@ struct NotchBlockApp: App {
 
         Divider()
 
+        Toggle(isOn: $showTimeInMenuBar) {
+            Text("菜单栏显示剩余时间")
+        }
+
+        Divider()
+
         Toggle(isOn: Binding(
             get: { LaunchManager.isLoginItemEnabled },
             set: { enabled in try? LaunchManager.setLoginItemEnabled(enabled) }
@@ -227,31 +234,6 @@ struct NotchBlockApp: App {
             NSApplication.shared.terminate(nil)
         }
         .keyboardShortcut("q")
-    }
-
-    // MARK: - Menu Bar Icon
-
-    @ViewBuilder
-    private var menuBarIcon: some View {
-        let pending = store.todayBlocks().filter { $0.status == .pending }.count
-        let style = IconStyle(rawValue: iconStyle) ?? .timer
-        if let active = store.activeBlock() {
-            if let remaining = active.remainingTime {
-                let minutes = Int(remaining / 60)
-                Image(systemName: style.systemImage)
-                Text("\(minutes)m")
-                    .font(.system(size: 11, weight: .medium, design: .monospaced))
-            } else {
-                Image(systemName: style.systemImage)
-            }
-        } else if pending > 0 {
-            Image(systemName: style.systemImage)
-            Text("\(pending)")
-                .font(.system(size: 9, weight: .bold, design: .monospaced))
-                .foregroundStyle(.secondary)
-        } else {
-            Image(systemName: style.systemImage)
-        }
     }
 
     // MARK: - Helpers

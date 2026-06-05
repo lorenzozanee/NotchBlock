@@ -17,8 +17,8 @@ struct MainSchedulerView: View {
         case timeline = "时间轴"
     }
 
-    /// Timer fires every 30s to refresh active-block detection and relative times
-    private let tickTimer = Timer.publish(every: 30, on: .main, in: .common).autoconnect()
+    /// Timer fires every 1s to keep countdown and active-block detection live
+    private let tickTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
         VStack(spacing: 0) {
