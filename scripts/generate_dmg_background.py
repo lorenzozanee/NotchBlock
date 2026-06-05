@@ -1,34 +1,35 @@
 #!/usr/bin/env python3
-"""Generate a minimal, clean DMG background image for NotchBlock.
+"""Generate a minimal NotchBlock DMG background image.
 
-Design:
-  - 1200×840 px @144 DPI → 600×420 pt DMG window (Retina)
-  - Dark gradient background with subtle indigo accent
-  - Curved guide arrow from app zone (left) to Applications zone (right)
-  - Minimal text: step 1 hint, step 2 label for the .command script
+Design goals:
+  - Clean, minimal — no unnecessary elements
+  - Dark gradient background matching macOS aesthetic
+  - Subtle indigo accent (#4F46E5)
+  - Visual guide: app icon zone → arrow → Applications zone
+  - Small step hints for the 3-step install flow
+  - 1280×800 px @144 DPI → 640×400 pt window (Retina)
 
-The background image is placed inside the DMG (hidden) and set via AppleScript.
-Icons (NotchBlock.app, Applications alias, FixQuarantine.command) are positioned
-on top by Finder — the background only provides visual decoration.
+This is used by build_dmg.py which writes .DS_Store directly via dmgbuild,
+avoiding the unreliable AppleScript/Finder approach entirely.
 """
 
-import math
 from PIL import Image, ImageDraw, ImageFont
 
-# ── Dimensions ──────────────────────────────────────────────
-W, H = 1200, 840  # @2x for 600×420 pt window
+# ── Dimensions ──────────────────────────────────────────────────
+W, H = 1280, 800  # @2x for 640×400 pt window
 DPI = (144, 144)
 
-# ── Colors ──────────────────────────────────────────────────
-BG_TOP = (38, 38, 44)        # dark charcoal
-BG_BOT = (28, 28, 34)        # deeper charcoal
-ACCENT = (79, 70, 229)       # indigo #4F46E5
-TEXT_PRIMARY = (220, 220, 228)
-TEXT_SECONDARY = (140, 140, 152)
+# ── Colors ──────────────────────────────────────────────────────
+BG_TOP = (32, 32, 38)
+BG_BOT = (22, 22, 28)
+ACCENT = (79, 70, 229)       # #4F46E5 indigo
+TEXT_PRIMARY = (210, 210, 220)
+TEXT_SECONDARY = (130, 130, 145)
+ZONE_OUTLINE = (79, 70, 229, 12)
 
 
-def vertical_gradient(draw, w, h, top, bottom):
-    """Draw a vertical linear gradient from top to bottom."""
+def gradient(draw, w, h, top, bottom):
+    """Vertical linear gradient."""
     for y in range(h):
         t = y / h
         r = int(top[0] + (bottom[0] - top[0]) * t)
@@ -37,133 +38,100 @@ def vertical_gradient(draw, w, h, top, bottom):
         draw.line([(0, y), (w, y)], fill=(r, g, b))
 
 
-def rounded_rect(draw, xy, radius, fill=None, outline=None, width=1):
-    """Draw a rounded rectangle."""
-    draw.rounded_rectangle(xy, radius=radius, fill=fill,
-                           outline=outline, width=width)
-
-
 def main():
     img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
 
-    # ── Background gradient ──
-    vertical_gradient(draw, W, H, BG_TOP, BG_BOT)
+    # Background
+    gradient(draw, W, H, BG_TOP, BG_BOT)
 
-    # ── Subtle indigo glow at top-center ──
-    for r in range(180, 0, -1):
-        alpha = int(4 * (r / 180))
-        draw.ellipse(
-            [(W // 2 - r, -r), (W // 2 + r, r)],
-            fill=(*ACCENT[:3], alpha),
-        )
+    # Thin accent line at top
+    top_y = 46
+    for x in range(W // 2 - 80, W // 2 + 80):
+        a = int(40 * (1 - abs(x - W // 2) / 80))
+        draw.line([(x, top_y), (x + 1, top_y)], fill=(*ACCENT[:3], a), width=1)
 
-    # ── Thin accent line near top ──
-    line_y = 50
-    for i in range(W // 2 - 100, W // 2 + 100):
-        alpha = int(50 * (1 - abs(i - W // 2) / 100))
-        draw.line([(i, line_y), (i + 1, line_y)],
-                  fill=(*ACCENT[:3], alpha), width=1)
+    # ── Two icon drop zones ──────────────────────────────────
+    zone_size = 192
+    zones = [(260, 320), (1020, 320)]  # left (app), right (Applications)
 
-    # ── Icon drop zones — soft rounded squares ──
-    zone_size = 180
-    for zx, zy in [(240, 360), (960, 360)]:
-        rounded_rect(
-            draw,
+    for zx, zy in zones:
+        draw.rounded_rectangle(
             (zx - zone_size // 2, zy - zone_size // 2,
              zx + zone_size // 2, zy + zone_size // 2),
-            radius=24,
-            outline=(*ACCENT[:3], 18),
+            radius=28,
+            outline=ZONE_OUTLINE,
             width=2,
         )
 
-    # ── Guide chevrons (>>>) between the two zones ──
-    arrow_start_x = 240 + zone_size // 2 + 30
-    arrow_end_x = 960 - zone_size // 2 - 30
-    arrow_y = 340
-    chevron_count = 3
-    for ch in range(chevron_count):
-        t = (ch + 1) / (chevron_count + 1)
-        cx = arrow_start_x + (arrow_end_x - arrow_start_x) * t
-        cy = arrow_y
-        sz = 10
-        alpha = int(100 + 60 * t)
+    # ── Guide chevrons between zones ──────────────────────────
+    left_edge = zones[0][0] + zone_size // 2 + 40
+    right_edge = zones[1][0] - zone_size // 2 - 40
+    chev_y = zones[0][1]
+    for i in range(3):
+        t = (i + 1) / 4
+        cx = left_edge + (right_edge - left_edge) * t
+        sz = 12
+        a = int(80 + 70 * t)
         pts = [
-            (cx - sz, cy - sz * 1.2),
-            (cx + sz * 0.5, cy),
-            (cx - sz, cy + sz * 1.2),
+            (cx - sz, chev_y - sz * 1.2),
+            (cx + sz * 0.6, chev_y),
+            (cx - sz, chev_y + sz * 1.2),
         ]
-        draw.polygon(pts, fill=(*ACCENT[:3], alpha))
+        draw.polygon(pts, fill=(*ACCENT[:3], a))
 
-    # ── Text ──
+    # ── Fonts ─────────────────────────────────────────────────
     try:
-        font_large = ImageFont.truetype(
-            "/System/Library/Fonts/PingFang.ttc", 32)
-        font_medium = ImageFont.truetype(
-            "/System/Library/Fonts/PingFang.ttc", 24)
-        font_small = ImageFont.truetype(
-            "/System/Library/Fonts/PingFang.ttc", 18)
-    except (OSError, IOError):
-        try:
-            font_large = ImageFont.truetype(
-                "/System/Library/Fonts/Helvetica.ttc", 32)
-            font_medium = ImageFont.truetype(
-                "/System/Library/Fonts/Helvetica.ttc", 24)
-            font_small = ImageFont.truetype(
-                "/System/Library/Fonts/Helvetica.ttc", 18)
-        except (OSError, IOError):
-            font_large = ImageFont.load_default()
-            font_medium = ImageFont.load_default()
-            font_small = ImageFont.load_default()
+        f_title = ImageFont.truetype("/System/Library/Fonts/PingFang.ttc", 34)
+        f_body = ImageFont.truetype("/System/Library/Fonts/PingFang.ttc", 20)
+        f_small = ImageFont.truetype("/System/Library/Fonts/PingFang.ttc", 16)
+    except OSError:
+        f_title = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", 34)
+        f_body = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", 20)
+        f_small = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", 16)
 
-    # App name
-    draw.text((W // 2, 110), "NotchBlock",
-              fill=TEXT_PRIMARY, font=font_large, anchor="mm")
+    # App name centered
+    draw.text((W // 2, 105), "NotchBlock",
+              fill=TEXT_PRIMARY, font=f_title, anchor="mm")
 
     # Subtitle
-    draw.text((W // 2, 155), "将 Mac 刘海转化为时间管理入口",
-              fill=TEXT_SECONDARY, font=font_small, anchor="mm")
+    draw.text((W // 2, 148), "刘海时间块 · macOS 专注工具",
+              fill=TEXT_SECONDARY, font=f_small, anchor="mm")
 
-    # Zone hint below app icon zone
-    draw.text((240, 360 + zone_size // 2 + 30),
-              "拖入 Applications",
-              fill=TEXT_SECONDARY, font=font_small, anchor="mt")
+    # Zone labels (below each zone)
+    draw.text((260, 320 + zone_size // 2 + 22), "拖入 Applications",
+              fill=TEXT_SECONDARY, font=f_small, anchor="mt")
+    draw.text((1020, 320 + zone_size // 2 + 22), "快捷方式",
+              fill=TEXT_SECONDARY, font=f_small, anchor="mt")
 
-    # ── Step indicators at bottom (stacked: circle + text below) ──
-    steps_y = 540
+    # ── Install steps at bottom ────────────────────────────────
+    step_y = 600
     steps = [
         ("1", "拖入 Applications"),
         ("2", "双击 FixQuarantine.command"),
-        ("3", "打开 NotchBlock"),
+        ("3", "从 Applications 打开"),
     ]
-
     for i, (num, desc) in enumerate(steps):
-        sx = 200 + i * 400
-        # Number circle
-        cr = 18
+        sx = 250 + i * 390
+        # Circle with number
+        cr = 16
         draw.ellipse(
-            [(sx - cr, steps_y - cr),
-             (sx + cr, steps_y + cr)],
+            [(sx - cr, step_y - cr), (sx + cr, step_y + cr)],
             fill=(*ACCENT[:3], 180),
         )
-        draw.text((sx, steps_y), num,
-                  fill=(255, 255, 255), font=font_small, anchor="mm")
-        # Description text BELOW the circle
-        text_y = steps_y + cr + 14
-        draw.text((sx, text_y), desc,
-                  fill=TEXT_PRIMARY,
-                  font=font_small, anchor="mt")
+        draw.text((sx, step_y), num, fill=(255, 255, 255),
+                  font=f_small, anchor="mm")
+        draw.text((sx, step_y + cr + 12), desc,
+                  fill=TEXT_PRIMARY, font=f_small, anchor="mt")
 
-    # ── Bottom accent ──
-    for i in range(W):
-        alpha = int(8 * (1 - abs(i - W // 2) / (W // 2)))
-        draw.line([(i, H - 1), (i + 1, H - 1)],
-                  fill=(*ACCENT[:3], alpha), width=1)
+    # ── Bottom accent stripe ───────────────────────────────────
+    for x in range(W):
+        a = int(6 * (1 - abs(x - W // 2) / (W // 2)))
+        draw.line([(x, H - 1), (x + 1, H - 1)],
+                  fill=(*ACCENT[:3], a), width=1)
 
-    # ── Save ──
     img.save("build/dmg_background.png", dpi=DPI)
-    print(f"✅ DMG background saved to build/dmg_background.png")
-    print(f"   {W}×{H} px @ {DPI[0]} DPI")
+    print(f"✅ Background: {W}×{H} px @ {DPI[0]} DPI → build/dmg_background.png")
 
 
 if __name__ == "__main__":
