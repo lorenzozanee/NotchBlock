@@ -18,7 +18,11 @@ struct NotchBlockApp: App {
     private let breakScheduler: BreakScheduler
     private let statsStore: StatisticsStore
     private let onboardingWC = OnboardingWindowController()
+    private let updateChecker = UpdateChecker()
     @State private var showWeChatSettings = false
+    @State private var showWhatsNew = false
+    @State private var whatsNewVersion = ""
+    @State private var whatsNewChangelog = ""
     @State private var quickAddTitle = ""
     @AppStorage("menuBarIconStyle") private var iconStyle = "timer"
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
@@ -77,6 +81,7 @@ struct NotchBlockApp: App {
         scheduler.start()
         overlayController.requestNotificationPermission()
         overlayController.scheduleDailySummary(stats: stats)
+        updateChecker.startAutoCheck()
 
         // 4. Show onboarding if first launch, then hide the main window.
         if !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding") {
@@ -128,6 +133,18 @@ struct NotchBlockApp: App {
         // Main scheduler window — explicitly managed via id for programmatic reopen
         Window("排程面板", id: "main") {
             MainSchedulerView(store: store, stats: statsStore)
+                .onAppear {
+                    if let changelog = updateChecker.checkWhatsNew() {
+                        whatsNewVersion = updateChecker.currentVersion
+                        whatsNewChangelog = changelog
+                        showWhatsNew = true
+                    }
+                }
+                .sheet(isPresented: $showWhatsNew) {
+                    WhatsNewView(version: whatsNewVersion, changelog: whatsNewChangelog) {
+                        showWhatsNew = false
+                    }
+                }
                 .sheet(isPresented: $showWeChatSettings) {
                     WeChatSettingsView(notifier: weChatNotifier)
                 }
@@ -210,6 +227,12 @@ struct NotchBlockApp: App {
                     }
                 }
             }
+        }
+
+        Divider()
+
+        Button("检查更新...") {
+            updateChecker.checkForUpdates(showNoUpdateAlert: true)
         }
 
         Divider()

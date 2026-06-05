@@ -32,13 +32,16 @@ files = [
     ("OnboardingView.swift",        "NotchBlock/Views/OnboardingView.swift"),
     ("TimelineView.swift",          "NotchBlock/Views/TimelineView.swift"),
     ("MenuBarIconView.swift",       "NotchBlock/Views/MenuBarIconView.swift"),
+    ("WhatsNewView.swift",          "NotchBlock/Views/WhatsNewView.swift"),
     ("DateExtensions.swift",        "NotchBlock/Utilities/DateExtensions.swift"),
     ("LaunchManager.swift",         "NotchBlock/Utilities/LaunchManager.swift"),
     ("BrandColors.swift",           "NotchBlock/Utilities/BrandColors.swift"),
+    ("UpdateChecker.swift",         "NotchBlock/Utilities/UpdateChecker.swift"),
 ]
 
 resources = [
     ("Assets", "NotchBlock/Resources/Assets.xcassets"),
+    ("CHANGELOG", "CHANGELOG.md"),
 ]
 
 # ── UUID generation ──────────────────────────────────────────────
@@ -133,7 +136,7 @@ def groups_section():
 \t\t{views_grp} = {{
 \t\t\tisa = PBXGroup;
 \t\t\tchildren = (
-{children(['MainSchedulerView.swift', 'TimeBlockRowView.swift', 'AddEditBlockView.swift', 'NotchPanelView.swift', 'OverlayView.swift', 'WeChatSettingsView.swift', 'StatisticsView.swift', 'OnboardingView.swift', 'TimelineView.swift', 'MenuBarIconView.swift'])}
+{children(['MainSchedulerView.swift', 'TimeBlockRowView.swift', 'AddEditBlockView.swift', 'NotchPanelView.swift', 'OverlayView.swift', 'WeChatSettingsView.swift', 'StatisticsView.swift', 'OnboardingView.swift', 'TimelineView.swift', 'MenuBarIconView.swift', 'WhatsNewView.swift'])}
 \t\t\t);
 \t\t\tpath = Views;
 \t\t\tsourceTree = "<group>";
@@ -141,7 +144,7 @@ def groups_section():
 \t\t{utils_grp} = {{
 \t\t\tisa = PBXGroup;
 \t\t\tchildren = (
-{children(['DateExtensions.swift', 'LaunchManager.swift', 'BrandColors.swift'])}
+{children(['DateExtensions.swift', 'LaunchManager.swift', 'BrandColors.swift', 'UpdateChecker.swift'])}
 \t\t\t);
 \t\t\tpath = Utilities;
 \t\t\tsourceTree = "<group>";
