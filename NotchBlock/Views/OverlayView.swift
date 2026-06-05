@@ -8,12 +8,13 @@ struct OverlayView: View {
     let block: TimeBlock
     let onCompleted: () -> Void
     let onAdjust: () -> Void
-    let onExtend: (TimeInterval) -> Void
+    let onExtend: (TimeInterval, Bool) -> Void
 
     @State private var elapsedSeconds: Int = 0
     @State private var cardAppeared = false
     @State private var customMinutes = ""
     @State private var showCustomField = false
+    @State private var shiftAllSubsequent = false
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     private let timeoutSeconds = 300
 
@@ -71,6 +72,12 @@ struct OverlayView: View {
                         .background(.quaternary, in: RoundedRectangle(cornerRadius: 6))
                         .font(.caption)
                     }
+                    Toggle(isOn: $shiftAllSubsequent) {
+                        Text("推迟所有后续任务").font(.caption)
+                    }
+                    .toggleStyle(.checkbox)
+                    .foregroundStyle(.secondary)
+
                     if showCustomField {
                         HStack(spacing: 8) {
                             TextField("分钟数", text: $customMinutes)
@@ -81,7 +88,7 @@ struct OverlayView: View {
                                 .font(.caption)
                             Button("延长") {
                                 if let mins = Int(customMinutes), mins > 0 {
-                                    onExtend(TimeInterval(mins * 60))
+                                    onExtend(TimeInterval(mins * 60), shiftAllSubsequent)
                                     customMinutes = ""
                                     showCustomField = false
                                 }
@@ -111,7 +118,7 @@ struct OverlayView: View {
     }
 
     private func extendButton(_ label: String, _ seconds: TimeInterval) -> some View {
-        Button(label) { onExtend(seconds) }
+        Button(label) { onExtend(seconds, shiftAllSubsequent) }
             .buttonStyle(.plain)
             .padding(.vertical, 6).padding(.horizontal, 14)
             .background(BrandColors.accent.opacity(0.15), in: RoundedRectangle(cornerRadius: 6))
@@ -138,7 +145,7 @@ struct OverlayView: View {
         ),
         onCompleted: {},
         onAdjust: {},
-        onExtend: { _ in }
+        onExtend: { _,_  in }
     )
 }
 #endif

@@ -102,15 +102,19 @@ struct NotchBlockApp: App {
             NotificationCenter.default.post(name: .openMainWindow, object: nil)
         }
 
-        overlayCtrl.onExtendBlock = { block, seconds in
+        overlayCtrl.onExtendBlock = { block, seconds, shiftAll in
             let extendedEnd = block.endTime.addingTimeInterval(seconds)
             store.update(block.withEndTime(extendedEnd).with(status: .pending))
 
             let today = store.todayBlocks().sorted { $0.startTime < $1.startTime }
-            if let next = today.first(where: { $0.startTime >= block.endTime && $0.id != block.id }) {
-                let shiftedStart = next.startTime.addingTimeInterval(seconds)
-                let shiftedEnd = next.endTime.addingTimeInterval(seconds)
-                store.update(next.withStartTime(shiftedStart).withEndTime(shiftedEnd))
+            if shiftAll {
+                for next in today where next.startTime >= block.endTime && next.id != block.id {
+                    store.update(next.withStartTime(next.startTime.addingTimeInterval(seconds))
+                                     .withEndTime(next.endTime.addingTimeInterval(seconds)))
+                }
+            } else if let next = today.first(where: { $0.startTime >= block.endTime && $0.id != block.id }) {
+                store.update(next.withStartTime(next.startTime.addingTimeInterval(seconds))
+                                 .withEndTime(next.endTime.addingTimeInterval(seconds)))
             }
         }
 

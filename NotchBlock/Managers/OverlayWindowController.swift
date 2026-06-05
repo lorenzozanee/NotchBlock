@@ -17,7 +17,7 @@ final class OverlayWindowController: ObservableObject {
     var onMarkCompleted: ((TimeBlock) -> Void)?
     var onMarkMissed: ((TimeBlock) -> Void)?
     var onAdjustSchedule: (() -> Void)?
-    var onExtendBlock: ((TimeBlock, TimeInterval) -> Void)?
+    var onExtendBlock: ((TimeBlock, TimeInterval, Bool) -> Void)?
 
     // MARK: - Sound
 
@@ -65,7 +65,7 @@ final class OverlayWindowController: ObservableObject {
             block: block,
             onCompleted: { [weak self] in self?.handleCompleted() },
             onAdjust: { [weak self] in self?.handleAdjust() },
-            onExtend: { [weak self] seconds in self?.handleExtend(seconds) }
+            onExtend: { [weak self] seconds, shiftAll in self?.handleExtend(seconds, shiftAll: shiftAll) }
         )
         let hostingView = NSHostingView(rootView: overlayView)
         hostingView.frame = screenFrame
@@ -118,10 +118,10 @@ final class OverlayWindowController: ObservableObject {
         onAdjustSchedule?()
     }
 
-    private func handleExtend(_ seconds: TimeInterval) {
+    private func handleExtend(_ seconds: TimeInterval, shiftAll: Bool) {
         guard let block = currentBlock else { return }
         dismiss()
-        onExtendBlock?(block, seconds)
+        onExtendBlock?(block, seconds, shiftAll)
     }
 
     // MARK: - Timeout (AC 3.3)
