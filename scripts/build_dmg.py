@@ -22,8 +22,8 @@ STAGING_DIR = BUILD_DIR / "staging_dmg"
 BACKGROUND_SRC = BUILD_DIR / "dmg_background.png"
 
 WINDOW_RECT = ((400, 200), (640, 400))
-ICON_SIZE = 96
-TEXT_SIZE = 14
+ICON_SIZE = 80
+TEXT_SIZE = 13
 
 
 def run(cmd, **kwargs):
@@ -112,8 +112,8 @@ def build_dmg(staging_dir, version):
         "files": [str(staging_dir / "NotchBlock.app")],
         "symlinks": {"Applications": "/Applications"},
         "icon_locations": {
-            "NotchBlock.app": (160, 180),
-            "Applications": (480, 180),
+            "NotchBlock.app": (160, 100),
+            "Applications": (480, 100),
         },
         "background": str(BACKGROUND_SRC),
         "window_rect": WINDOW_RECT,
