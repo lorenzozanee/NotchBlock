@@ -5,6 +5,21 @@ All notable changes to NotchBlock will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.4] — 2026-06-07
+
+### Added
+
+- **桌面宠物 (Elysia):** 始终可见的桌面陪伴宠物，动画随专注状态变化（专注中→waiting/idle，成功→jumping，失败→failing），单击弹出时间面板，拖拽移动，右键菜单，引导页可选开关
+- **可扩展宠物系统:** `PetProtocol` + `PetManifest.json` 架构，添加同类宠物仅需素材+配置，零代码改动
+- **10 文件 + 329 测试:** Models（PetState/PetProtocol/PetConfig/PetPreferences）、Managers（AnimationPlayer/StateMachine/InteractionHandler/WindowController）、Views（PetView/PetOnboardingView）
+
+### Changed
+
+- **NSPanel 模板复用:** PetWindowController 使用与 NotchPanelController/OverlayWindowController 相同的 `.nonactivatingPanel` + `.fullScreenAuxiliary` 模式
+- **动画引擎:** CADisplayLink（macOS 14+ 原生 API）替代已弃用的 CVDisplayLink，消除主线程数据竞争
+
+---
+
 ## [0.6.3] — 2026-06-05
 
 ### Added
