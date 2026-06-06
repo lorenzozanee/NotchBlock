@@ -28,6 +28,23 @@ def get_version():
     return r.stdout.strip() if r.returncode == 0 else "0.1.0"
 
 
+def sync_plist_version(version):
+    """Update CFBundleShortVersionString in Info.plist to match git tag."""
+    plist = PROJECT_DIR / "NotchBlock" / "Info.plist"
+    text = plist.read_text()
+    import re
+    updated, n = re.subn(
+        r"(<key>CFBundleShortVersionString</key>\n\t<string>)[^<]+(</string>)",
+        rf"\g<1>{version}\g<2>",
+        text,
+    )
+    if n > 0:
+        plist.write_text(updated)
+        print(f"   🔖 Info.plist → {version}")
+    else:
+        print("  ⚠️  Could not sync CFBundleShortVersionString")
+
+
 def step_build():
     print("🔨 Building...")
     subprocess.run([
@@ -125,6 +142,7 @@ def main():
     a = p.parse_args()
     ver = get_version()
     print(f"📦 NotchBlock DMG — {ver}\n")
+    sync_plist_version(ver)
 
     if a.dmg_only:
         app = find_app()
