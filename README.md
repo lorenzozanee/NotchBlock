@@ -1,11 +1,11 @@
-# NotchBlock 刘海时间块
+# NotchBlock
 
 <p align="center">
   <img src="icon.png" alt="NotchBlock Icon" width="128" height="128">
 </p>
 
 <p align="center">
-  <strong>将 Mac 硬件刘海转化为时间管理入口</strong>
+  <strong>Turn the Mac hardware notch into a time-blocking gateway.</strong>
 </p>
 
 <p align="center">
@@ -15,71 +15,75 @@
   <a href="#"><img src="https://img.shields.io/badge/swift-6.1-FA7343?logo=swift" alt="Swift 6.1"></a>
 </p>
 
+<p align="center">
+  <sub>English | <a href="README_ZH.md">中文</a> | <a href="README_FR.md">Français</a> | <a href="README_ES.md">Español</a> | <a href="README_JA.md">日本語</a> | <a href="README_KO.md">한국어</a></sub>
+</p>
+
 ---
 
-NotchBlock 是一款极简但**强制执行**的时间块（Time-Blocking）日程管理工具。它将 Mac 的硬件刘海转化为隐形交互入口，通过不容忽视的全屏弹窗中断机制，强迫你保持专注。
+NotchBlock is a minimalist, **enforced** time-blocking scheduler for macOS. It transforms the hardware notch into an invisible interaction point, and uses an unmissable full-screen overlay to interrupt you when a task ends — keeping you focused by force.
 
-> 🎯 鼠标悬停刘海 → 查看今日排程 → 任务结束时强制全屏提醒 → 必须确认完成状态
+> 🎯 Hover over the notch → see today's schedule → full-screen reminder at task end → must confirm completion
 
-## ✨ 功能特性
+## ✨ Features
 
-| 功能 | 说明 |
+| Feature | Description |
 |---|---|
-| 🔲 **刘海悬停面板** | 鼠标在刘海区域停留 0.5 秒，优雅滑出今日日程简报 |
-| 🛡️ **全屏避让** | 看视频、打游戏、放 PPT 时自动暂停刘海检测 |
-| ⚡ **硬中断遮罩** | 任务结束时强制全屏变暗，拦截所有操作 |
-| ⏱️ **5 分钟超时** | 未响应自动标记「未完成」+ 系统通知 |
-| 📋 **今日排班器** | 极简时间轴列表，时间冲突自动检测 |
-| 🔄 **历史补录** | 手动修正任务状态，精准复盘 |
-| 🚀 **开机启动** | 菜单栏一键开关，安静常驻后台 |
-| 💾 **本地存储** | 数据完全本地，无需网络，隐私安全 |
+| 🔲 **Notch Hover Panel** | Hover over the notch for 0.5s — your schedule slides out gracefully |
+| 🛡️ **Fullscreen Aware** | Auto-pauses notch detection during video, gaming, and presentations |
+| ⚡ **Hard Interrupt Overlay** | Full-screen dimming overlay at task end — blocks all other interaction |
+| ⏱️ **5‑Minute Timeout** | Unacknowledged blocks are auto-marked "missed" with a system notification |
+| 📋 **Daily Scheduler** | Minimal timeline list with automatic time‑conflict detection |
+| 🔄 **History Correction** | Manually adjust task status for accurate time‑tracking review |
+| 🚀 **Launch at Login** | One‑click toggle from the menu bar; runs quietly in the background |
+| 💾 **Local Storage** | All data stored locally — no network, fully private |
 
-## 📥 安装
+## 📥 Installation
 
-从 [Releases](https://github.com/lorenzozanee/NotchBlock/releases) 页面下载最新 `NotchBlock-*.dmg`。
+Download the latest `NotchBlock-*.dmg` from [Releases](https://github.com/lorenzozanee/NotchBlock/releases).
 
-### 三步安装
+### 3‑Step Setup
 
-打开 DMG 后，按照窗口背景提示操作：
+After opening the DMG, follow the on‑window instructions:
 
-1. **拖入 Applications** — 将 `NotchBlock.app` 拖到 `Applications` 文件夹
-2. **双击 `FixQuarantine.command`** — 一键移除隔离标记并启动应用（首次需右键→打开）
-3. **完成** — 菜单栏会出现图标，开始使用
+1. **Drag to Applications** — drop `NotchBlock.app` into your `Applications` folder
+2. **Double‑click `FixQuarantine.command`** — removes the quarantine attribute and launches the app (first launch requires right‑click → Open)
+3. **Done** — the menu bar icon appears; you're ready to go
 
-> 💡 为什么需要第 2 步？NotchBlock 未经过 Apple 公证（需要 $99/年 的开发者账号），macOS 会对下载的应用标记隔离属性。`FixQuarantine.command` 会自动执行 `xattr -cr /Applications/NotchBlock.app` 移除此标记。
+> 💡 Why step 2? NotchBlock is not notarized by Apple (requires a $99/yr developer account). macOS quarantines downloaded apps. `FixQuarantine.command` runs `xattr -cr /Applications/NotchBlock.app` to clear this flag.
 
-首次运行后需授权：
+After first launch, grant these permissions:
 
-| 权限 | 用途 | 设置路径 |
+| Permission | Purpose | Settings Path |
 |---|---|---|
-| **辅助功能** (Accessibility) | 检测全屏应用状态 | 系统设置 → 隐私与安全性 → 辅助功能 |
-| **通知** (Notifications) | 任务超时提醒 | 系统设置 → 通知 → NotchBlock |
+| **Accessibility** | Detecting fullscreen apps | System Settings → Privacy & Security → Accessibility |
+| **Notifications** | Task timeout alerts | System Settings → Notifications → NotchBlock |
 
-### 手动安装
+### Manual Install
 
 ```bash
-# 如果 DMG 内的脚本无法运行，手动执行：
+# If the DMG script won't run, do it manually:
 xattr -cr /Applications/NotchBlock.app
 open /Applications/NotchBlock.app
 ```
 
-## 🏗️ 技术架构
+## 🏗️ Architecture
 
 ```
 macOS 14.0+ · Swift 6.1 · SwiftUI + AppKit
 ```
 
-**关键 API：**
+**Key APIs:**
 
-- `NSTrackingArea` — 刘海区域鼠标追踪
-- `NSPanel` + `.nonactivatingPanel` — 下拉面板（不抢焦点）
-- `CGShieldingWindowLevel()` + `.fullScreenAuxiliary` — 全屏遮罩穿透
-- `CGWindowList` — 全屏状态检测
-- `SMAppService` — 开机启动注册
-- `UserNotifications` — 超时横幅通知
-- `UserDefaults` / ISO 8601 JSON — 本地持久化
+- `NSTrackingArea` — notch‑region mouse tracking
+- `NSPanel` + `.nonactivatingPanel` — dropdown panel (doesn't steal focus)
+- `CGShieldingWindowLevel()` + `.fullScreenAuxiliary` — overlay that punches through
+- `CGWindowList` — fullscreen state detection
+- `SMAppService` — login item registration
+- `UserNotifications` — timeout banner alerts
+- `UserDefaults` / ISO 8601 JSON — local persistence
 
-**项目结构：**
+**Project structure:**
 
 ```
 NotchBlock/
@@ -91,27 +95,27 @@ NotchBlock/
 └── Utilities/        DateExtensions · LaunchManager
 ```
 
-## ⌨️ 快捷键
+## ⌨️ Shortcuts
 
-| 快捷键 | 操作 |
+| Shortcut | Action |
 |---|---|
-| `⌘O` | 打开排程面板 |
-| `⌘Q` | 退出 NotchBlock |
+| `⌘O` | Open scheduler panel |
+| `⌘Q` | Quit NotchBlock |
 
-## 📝 开发
+## 📝 Development
 
 ```bash
-# 添加新文件后重新生成 Xcode 项目
+# Regenerate the Xcode project after adding/removing .swift files
 python3 generate_xcode_project.py
 
-# CLI 构建
+# CLI build
 xcodebuild -project NotchBlock.xcodeproj -scheme NotchBlock -configuration Release build
 
-# 创建 DMG
+# Create DMG
 ./scripts/build-dmg.sh
 ```
 
-## 📄 许可
+## 📄 License
 
 [MIT License](LICENSE)
 
