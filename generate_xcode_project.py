@@ -13,6 +13,10 @@ files = [
     ("NotchBlockApp.swift",         "NotchBlock/NotchBlockApp.swift"),
     ("TimeBlock.swift",             "NotchBlock/Models/TimeBlock.swift"),
     ("BlockStatus.swift",           "NotchBlock/Models/BlockStatus.swift"),
+    ("PetState.swift",              "NotchBlock/Models/PetState.swift"),
+    ("PetProtocol.swift",           "NotchBlock/Models/PetProtocol.swift"),
+    ("PetConfig.swift",             "NotchBlock/Models/PetConfig.swift"),
+    ("PetPreferences.swift",        "NotchBlock/Models/PetPreferences.swift"),
     ("TimeBlockStore.swift",        "NotchBlock/Managers/TimeBlockStore.swift"),
     ("NotchTracker.swift",          "NotchBlock/Managers/NotchTracker.swift"),
     ("NotchPanelController.swift",  "NotchBlock/Managers/NotchPanelController.swift"),
@@ -22,6 +26,10 @@ files = [
     ("BreakScheduler.swift",        "NotchBlock/Managers/BreakScheduler.swift"),
     ("WeChatNotifier.swift",        "NotchBlock/Managers/WeChatNotifier.swift"),
     ("StatisticsStore.swift",       "NotchBlock/Managers/StatisticsStore.swift"),
+    ("PetAnimationPlayer.swift",    "NotchBlock/Managers/PetAnimationPlayer.swift"),
+    ("PetInteractionHandler.swift", "NotchBlock/Managers/PetInteractionHandler.swift"),
+    ("PetStateMachine.swift",       "NotchBlock/Managers/PetStateMachine.swift"),
+    ("PetWindowController.swift",   "NotchBlock/Managers/PetWindowController.swift"),
     ("MainSchedulerView.swift",     "NotchBlock/Views/MainSchedulerView.swift"),
     ("TimeBlockRowView.swift",      "NotchBlock/Views/TimeBlockRowView.swift"),
     ("AddEditBlockView.swift",      "NotchBlock/Views/AddEditBlockView.swift"),
@@ -33,6 +41,8 @@ files = [
     ("TimelineView.swift",          "NotchBlock/Views/TimelineView.swift"),
     ("MenuBarIconView.swift",       "NotchBlock/Views/MenuBarIconView.swift"),
     ("WhatsNewView.swift",          "NotchBlock/Views/WhatsNewView.swift"),
+    ("PetView.swift",               "NotchBlock/Views/PetView.swift"),
+    ("PetOnboardingView.swift",     "NotchBlock/Views/PetOnboardingView.swift"),
     ("DateExtensions.swift",        "NotchBlock/Utilities/DateExtensions.swift"),
     ("LaunchManager.swift",         "NotchBlock/Utilities/LaunchManager.swift"),
     ("BrandColors.swift",           "NotchBlock/Utilities/BrandColors.swift"),
@@ -120,7 +130,7 @@ def groups_section():
 \t\t{models_grp} = {{
 \t\t\tisa = PBXGroup;
 \t\t\tchildren = (
-{children(['TimeBlock.swift', 'BlockStatus.swift'])}
+{children(['TimeBlock.swift', 'BlockStatus.swift', 'PetState.swift', 'PetProtocol.swift', 'PetConfig.swift', 'PetPreferences.swift'])}
 \t\t\t);
 \t\t\tpath = Models;
 \t\t\tsourceTree = "<group>";
@@ -128,7 +138,7 @@ def groups_section():
 \t\t{managers_grp} = {{
 \t\t\tisa = PBXGroup;
 \t\t\tchildren = (
-{children(['TimeBlockStore.swift', 'NotchTracker.swift', 'NotchPanelController.swift', 'OverlayWindowController.swift', 'OnboardingWindowController.swift', 'BlockScheduler.swift', 'BreakScheduler.swift', 'WeChatNotifier.swift', 'StatisticsStore.swift'])}
+{children(['TimeBlockStore.swift', 'NotchTracker.swift', 'NotchPanelController.swift', 'OverlayWindowController.swift', 'OnboardingWindowController.swift', 'BlockScheduler.swift', 'BreakScheduler.swift', 'WeChatNotifier.swift', 'StatisticsStore.swift', 'PetAnimationPlayer.swift', 'PetInteractionHandler.swift', 'PetStateMachine.swift', 'PetWindowController.swift'])}
 \t\t\t);
 \t\t\tpath = Managers;
 \t\t\tsourceTree = "<group>";
@@ -136,7 +146,7 @@ def groups_section():
 \t\t{views_grp} = {{
 \t\t\tisa = PBXGroup;
 \t\t\tchildren = (
-{children(['MainSchedulerView.swift', 'TimeBlockRowView.swift', 'AddEditBlockView.swift', 'NotchPanelView.swift', 'OverlayView.swift', 'WeChatSettingsView.swift', 'StatisticsView.swift', 'OnboardingView.swift', 'TimelineView.swift', 'MenuBarIconView.swift', 'WhatsNewView.swift'])}
+{children(['MainSchedulerView.swift', 'TimeBlockRowView.swift', 'AddEditBlockView.swift', 'NotchPanelView.swift', 'OverlayView.swift', 'WeChatSettingsView.swift', 'StatisticsView.swift', 'OnboardingView.swift', 'TimelineView.swift', 'MenuBarIconView.swift', 'WhatsNewView.swift', 'PetView.swift', 'PetOnboardingView.swift'])}
 \t\t\t);
 \t\t\tpath = Views;
 \t\t\tsourceTree = "<group>";

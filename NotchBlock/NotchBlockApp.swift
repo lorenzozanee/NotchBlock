@@ -19,6 +19,7 @@ struct NotchBlockApp: App {
     private let statsStore: StatisticsStore
     private let onboardingWC = OnboardingWindowController()
     private let updateChecker = UpdateChecker()
+    private var petController: PetWindowController?
     @State private var showWeChatSettings = false
     @State private var showWhatsNew = false
     @State private var whatsNewVersion = ""
@@ -80,6 +81,34 @@ struct NotchBlockApp: App {
         notchTracker.start()
         scheduler.start()
         overlayController.requestNotificationPermission()
+
+        // 5. Initialize desktop pet if enabled
+        let petPrefs = PetPreferences()
+        if petPrefs.isEnabled {
+            let petSM = PetStateMachine(store: store, preferences: petPrefs)
+            let petAP = PetAnimationPlayer()
+            let petWC = PetWindowController(
+                store: store,
+                stateMachine: petSM,
+                animationPlayer: petAP,
+                preferences: petPrefs
+            )
+            petWC.onOpenNotchPanel = { [weak panelCtrl] in
+                panelCtrl?.show()
+            }
+            petWC.onHidePet = {
+                var prefs = PetPreferences()
+                prefs.isEnabled = false
+            }
+            petWC.onSwitchPet = { petID in
+                var prefs = PetPreferences()
+                prefs.selectedPet = petID
+                // reload will happen next launch or via settings
+            }
+            petWC.show()
+            petWC.startWatchdog()
+            petController = petWC
+        }
         overlayController.scheduleDailySummary(stats: stats)
         updateChecker.startAutoCheck()
 
