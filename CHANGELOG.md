@@ -5,6 +5,14 @@ All notable changes to NotchBlock will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.6] — 2026-06-07
+
+### Fixed
+
+- **宠物显示"?"占位符:** GIF 文件名生成缺少 petID 前缀（`waving.gif` → `elysia-waving.gif`），与 PetProtocol/PetConfig 命名约定不一致
+- **刘海面板不消失:** 宠物点击触发 `NotchPanelController.showWithAutoDismiss()` — 5 秒定时器 + 全局鼠标事件监听（点击外部自动关闭）
+- **右键菜单无反应:** `Hide Pet` 正确调用 `petWC.close()` 隐藏窗口；`Pet Settings` 回退到打开主窗口
+
 ## [0.6.5] — 2026-06-07
 
 ### Fixed

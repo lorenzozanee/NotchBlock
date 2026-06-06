@@ -96,16 +96,21 @@ struct NotchBlockApp: App {
                 preferences: petPrefs
             )
             petWC.onOpenNotchPanel = { [weak panelCtrl] in
-                panelCtrl?.show()
+                panelCtrl?.showWithAutoDismiss()
             }
-            petWC.onHidePet = {
+            petWC.onHidePet = { [weak petWC] in
                 var prefs = PetPreferences()
                 prefs.isEnabled = false
+                petWC?.close()
             }
             petWC.onSwitchPet = { petID in
                 var prefs = PetPreferences()
                 prefs.selectedPet = petID
                 // reload will happen next launch or via settings
+            }
+            petWC.onPetSettings = {
+                // Open main window for now — full settings UI is a future feature
+                NotificationCenter.default.post(name: .openMainWindow, object: nil)
             }
             petWC.show()
             petWC.startWatchdog()

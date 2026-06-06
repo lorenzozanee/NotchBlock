@@ -17,8 +17,15 @@ final class NotchPanelController {
     /// Called when user taps a task or quick-add — opens the main scheduler window.
     var onOpenMainWindow: (() -> Void)?
 
+    // MARK: - Auto-dismiss (for pet-triggered shows)
+
+    private var autoDismissTimer: Timer?
+    private var clickOutsideMonitor: Any?
+    private var isAutoDismissEnabled = false
+
     private static let panelWidth: CGFloat = 320
     private static let animationDuration: TimeInterval = 0.25
+    private static let autoDismissTimeout: TimeInterval = 5.0
 
     init(store: TimeBlockStore) {
         self.store = store
@@ -59,7 +66,61 @@ final class NotchPanelController {
         }, completionHandler: { [weak self] in
             guard let self, self.hideGeneration == gen else { return }
             self.panel?.orderOut(nil)
+            self.teardownAutoDismiss()
         })
+    }
+
+    // MARK: - Auto-Dismiss (Pet-Triggered)
+
+    /// Show the panel with a 5-second auto-dismiss timer and
+    /// click-outside-to-dismiss via global event monitor.
+    /// Used when the pet triggers the panel (no NotchTracker hover).
+    func showWithAutoDismiss() {
+        show()
+        setupAutoDismiss()
+    }
+
+    private func setupAutoDismiss() {
+        teardownAutoDismiss()
+        isAutoDismissEnabled = true
+
+        // 5-second auto-dismiss timer
+        autoDismissTimer = Timer.scheduledTimer(
+            withTimeInterval: Self.autoDismissTimeout,
+            repeats: false
+        ) { [weak self] _ in
+            DispatchQueue.main.async {
+                self?.hide()
+            }
+        }
+
+        // Click-outside-to-dismiss via global event monitor
+        clickOutsideMonitor = NSEvent.addGlobalMonitorForEvents(
+            matching: [.leftMouseDown, .rightMouseDown]
+        ) { [weak self] _ in
+            guard let self,
+                  let panel = self.panel,
+                  self.isAutoDismissEnabled,
+                  panel.isVisible
+            else { return }
+
+            let clickLocation = NSEvent.mouseLocation
+            if !panel.frame.contains(clickLocation) {
+                DispatchQueue.main.async {
+                    self.hide()
+                }
+            }
+        }
+    }
+
+    private func teardownAutoDismiss() {
+        isAutoDismissEnabled = false
+        autoDismissTimer?.invalidate()
+        autoDismissTimer = nil
+        if let monitor = clickOutsideMonitor {
+            NSEvent.removeMonitor(monitor)
+            clickOutsideMonitor = nil
+        }
     }
 
     // MARK: - Panel Setup

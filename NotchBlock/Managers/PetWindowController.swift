@@ -49,6 +49,9 @@ final class PetWindowController: ObservableObject {
     /// Called when the user chooses a different pet from the context menu.
     var onSwitchPet: ((String) -> Void)?
 
+    /// Called when the user chooses "Pet Settings..." from the context menu.
+    var onPetSettings: (() -> Void)?
+
     // MARK: - Combine
 
     private var cancellables = Set<AnyCancellable>()
@@ -222,6 +225,9 @@ final class PetWindowController: ObservableObject {
         handler.onSwitchPet = { [weak self] petID in
             self?.onSwitchPet?(petID)
         }
+        handler.onPetSettings = { [weak self] in
+            self?.onPetSettings?()
+        }
 
         panel.contentView = hostingView
         petPanel = panel
@@ -273,7 +279,9 @@ final class PetWindowController: ObservableObject {
             return nil
         }
 
-        let fileName = "\(state.animationFileName).gif"
+        // Naming convention: {petID}-{state.animationFileName}.gif
+        // (matches PetProtocol/PetConfig convention)
+        let fileName = "\(petID)-\(state.animationFileName).gif"
         let subpath = "Pets/\(petID)/\(fileName)"
 
         // Primary: app bundle Resources
