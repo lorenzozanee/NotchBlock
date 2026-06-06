@@ -5,6 +5,16 @@ All notable changes to NotchBlock will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.7] — 2026-06-07
+
+### Fixed
+
+- **自动更新彻底修复:** 4 个已知 Bug 全部修复
+  - **版本比较断裂 (CRITICAL):** Info.plist 中的 `v` 前缀（`v0.6.6`）导致 `Int("v0")` 返回 nil，版本比较永远为 false——自动更新从未检测到新版本。修复：`isNewer` 比较前统一 strip `v/V` 前缀，`build_dmg.py` 同步 strip
+  - **下载进度永远 0% (HIGH):** `URLSessionDownloadTask` 未设置 delegate，`downloadProgress` 从未更新。修复：新增 `DownloadDelegate`（`URLSessionDownloadDelegate`），实时回调进度至 `@Published downloadProgress`
+  - **DMG 无完整性校验 (MEDIUM):** 下载后直接挂载无校验。修复：挂载前执行 `hdiutil verify`，失败则删除损坏 DMG 并提示用户
+  - **GitHub API 限流无处理 (MEDIUM):** 403/429 静默失败。修复：检查 HTTP 状态码，限流时显示"检查更新受限"专用提示
+
 ## [0.6.6] — 2026-06-07
 
 ### Fixed
