@@ -33,9 +33,11 @@ def sync_plist_version(version):
     plist = PROJECT_DIR / "NotchBlock" / "Info.plist"
     text = plist.read_text()
     import re
+    # Strip "v" prefix so Info.plist always stores clean semver (e.g., "0.6.6")
+    clean_version = version.lstrip("v")
     updated, n = re.subn(
         r"(<key>CFBundleShortVersionString</key>\n\t<string>)[^<]+(</string>)",
-        rf"\g<1>{version}\g<2>",
+        rf"\g<1>{clean_version}\g<2>",
         text,
     )
     if n > 0:

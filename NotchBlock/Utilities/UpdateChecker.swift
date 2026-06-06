@@ -9,9 +9,18 @@ private let log = Logger(subsystem: "com.notchblock.app", category: "Update")
 /// mounts, copies .app to /Applications, and relaunches. No Sparkle dependency.
 final class UpdateChecker {
     private let repo = "lorenzozanee/NotchBlock"
-    private let session: URLSession = {
+
+    // MARK: - URLSession
+
+    private let apiSession: URLSession = {
         let c = URLSessionConfiguration.default
         return URLSession(configuration: c)
+    }()
+
+    private let downloadDelegate = DownloadDelegate()
+    private lazy var downloadSession: URLSession = {
+        let c = URLSessionConfiguration.default
+        return URLSession(configuration: c, delegate: downloadDelegate, delegateQueue: nil)
     }()
     private var autoCheckTimer: Timer?
     private var downloadTask: URLSessionDownloadTask?
@@ -52,13 +61,33 @@ final class UpdateChecker {
         req.setValue("2022-11-28", forHTTPHeaderField: "X-GitHub-Api-Version")
         req.timeoutInterval = 10
 
-        session.dataTask(with: req) { [weak self] data, _, error in
-            guard let self, let data, error == nil,
-                  let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+        apiSession.dataTask(with: req) { [weak self] data, response, error in
+            guard let self, let data, error == nil else {
+                if showNoUpdateAlert { DispatchQueue.main.async { self?.showNoUpdate() } }
+                return
+            }
+
+            // Handle GitHub API rate limiting (403/429)
+            if let httpResponse = response as? HTTPURLResponse {
+                if httpResponse.statusCode == 403 || httpResponse.statusCode == 429 {
+                    log.warning("GitHub API rate limited: HTTP \(httpResponse.statusCode)")
+                    if showNoUpdateAlert {
+                        DispatchQueue.main.async { self.showRateLimited() }
+                    }
+                    return
+                }
+                if httpResponse.statusCode != 200 {
+                    log.warning("GitHub API returned HTTP \(httpResponse.statusCode)")
+                    if showNoUpdateAlert { DispatchQueue.main.async { self.showNoUpdate() } }
+                    return
+                }
+            }
+
+            guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                   let tag = json["tag_name"] as? String,
                   let htmlURL = json["html_url"] as? String
             else {
-                if showNoUpdateAlert { DispatchQueue.main.async { self?.showNoUpdate() } }
+                if showNoUpdateAlert { DispatchQueue.main.async { self.showNoUpdate() } }
                 return
             }
             let remote = tag.replacingOccurrences(of: "v", with: "")
@@ -96,13 +125,19 @@ final class UpdateChecker {
         }
 
         downloadProgress = 0
-        let task = session.downloadTask(with: url) { [weak self] localURL, _, error in
-            guard let self, let localURL = localURL, error == nil else {
-                DispatchQueue.main.async { self?.showDownloadFailed() }
-                return
-            }
-            self.installDMG(at: localURL, version: cache.tag)
+        downloadDelegate.onProgress = { [weak self] progress in
+            self?.downloadProgress = progress
         }
+        downloadDelegate.onComplete = { [weak self] localURL, error in
+            guard let self else { return }
+            if let localURL, error == nil {
+                self.installDMG(at: localURL, version: cache.tag)
+            } else {
+                DispatchQueue.main.async { self.showDownloadFailed() }
+            }
+        }
+
+        let task = downloadSession.downloadTask(with: url)
         downloadTask = task
         task.resume()
     }
@@ -111,6 +146,17 @@ final class UpdateChecker {
         let mountPoint = "/Volumes/NotchBlock-\(version)"
         // Unmount if already mounted
         Process.launchedProcess(launchPath: "/usr/bin/hdiutil", arguments: ["detach", mountPoint, "-force"]).waitUntilExit()
+
+        // Verify DMG integrity before mounting
+        let verify = Process.launchedProcess(launchPath: "/usr/bin/hdiutil",
+            arguments: ["verify", localURL.path])
+        verify.waitUntilExit()
+        if verify.terminationStatus != 0 {
+            log.warning("DMG integrity check failed for \(localURL.path)")
+            try? FileManager.default.removeItem(at: localURL)
+            DispatchQueue.main.async { self.showDownloadFailed() }
+            return
+        }
 
         // Mount DMG
         let mount = Process.launchedProcess(launchPath: "/usr/bin/hdiutil",
@@ -181,9 +227,12 @@ final class UpdateChecker {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.0.0"
     }
 
-    private func isNewer(_ a: String, than b: String) -> Bool {
-        let aP = a.split(separator: ".").compactMap { Int($0) }
-        let bP = b.split(separator: ".").compactMap { Int($0) }
+    /// Made internal for testing.
+    func isNewer(_ a: String, than b: String) -> Bool {
+        let aClean = a.replacingOccurrences(of: "v", with: "", options: .caseInsensitive)
+        let bClean = b.replacingOccurrences(of: "v", with: "", options: .caseInsensitive)
+        let aP = aClean.split(separator: ".").compactMap { Int($0) }
+        let bP = bClean.split(separator: ".").compactMap { Int($0) }
         for i in 0..<max(aP.count, bP.count) {
             let av = i < aP.count ? aP[i] : 0
             let bv = i < bP.count ? bP[i] : 0
@@ -273,5 +322,50 @@ final class UpdateChecker {
 
     func openReleasesPage() {
         NSWorkspace.shared.open(URL(string: "https://github.com/\(repo)/releases")!)
+    }
+
+    private func showRateLimited() {
+        let a = NSAlert()
+        a.messageText = "检查更新受限"
+        a.informativeText = "GitHub API 请求次数已达上限，请稍后再试或前往 GitHub 手动检查更新。"
+        a.alertStyle = .warning
+        a.addButton(withTitle: "前往下载")
+        a.addButton(withTitle: "确定")
+        if a.runModal() == .alertFirstButtonReturn {
+            self.openReleasesPage()
+        }
+    }
+}
+
+// MARK: - Download Delegate
+
+private final class DownloadDelegate: NSObject, URLSessionDownloadDelegate {
+    var onProgress: ((Double) -> Void)?
+    var onComplete: ((URL?, Error?) -> Void)?
+
+    func urlSession(_ session: URLSession,
+                    downloadTask: URLSessionDownloadTask,
+                    didWriteData bytesWritten: Int64,
+                    totalBytesWritten: Int64,
+                    totalBytesExpectedToWrite: Int64) {
+        guard totalBytesExpectedToWrite > 0 else { return }
+        let progress = Double(totalBytesWritten) / Double(totalBytesExpectedToWrite)
+        DispatchQueue.main.async { [weak self] in
+            self?.onProgress?(progress)
+        }
+    }
+
+    func urlSession(_ session: URLSession,
+                    downloadTask: URLSessionDownloadTask,
+                    didFinishDownloadingTo location: URL) {
+        onComplete?(location, nil)
+    }
+
+    func urlSession(_ session: URLSession,
+                    task: URLSessionTask,
+                    didCompleteWithError error: Error?) {
+        if let error {
+            onComplete?(nil, error)
+        }
     }
 }
