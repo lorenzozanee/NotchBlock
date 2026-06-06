@@ -90,6 +90,9 @@ final class PetWindowController: ObservableObject {
         panel.alphaValue = 0
         panel.orderFront(nil)
 
+        // Retry display link if NSScreen.main was nil during init
+        animationPlayer.ensureDisplayLink()
+
         NSAnimationContext.runAnimationGroup { ctx in
             ctx.duration = 0.35
             ctx.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
@@ -168,9 +171,10 @@ final class PetWindowController: ObservableObject {
         panel.isOpaque = false
         panel.backgroundColor = .clear
         panel.hasShadow = false
-        panel.level = .mainMenu
+        panel.level = .floating
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         panel.ignoresMouseEvents = false
+        panel.sharingType = .none
         panel.isMovable = false
         panel.isReleasedWhenClosed = false
         panel.hidesOnDeactivate = false
@@ -235,6 +239,10 @@ final class PetWindowController: ObservableObject {
     // MARK: - State Observation
 
     private func setupStateObservation() {
+        // Explicitly load the current state animation — do not rely on
+        // @Published subscription timing (which may vary during early app init).
+        handleStateChange(stateMachine.currentState)
+
         stateMachine.$currentState
             .receive(on: DispatchQueue.main)
             .sink { [weak self] newState in
@@ -283,10 +291,15 @@ final class PetWindowController: ObservableObject {
         }
 
 #if DEBUG
-        // Development fallback: project root Resources (stripped from release builds)
+        // Development fallback: project root Resources/Pets/ (stripped from release builds)
         let devPath = "/Users/\(NSUserName())/projects/ccprojects/NotchBlock/NotchBlock/Resources/\(subpath)"
         if FileManager.default.fileExists(atPath: devPath) {
             return URL(fileURLWithPath: devPath)
+        }
+        // Secondary fallback: pets/ at project root (legacy location)
+        let legacyPath = "/Users/\(NSUserName())/projects/ccprojects/NotchBlock/\(subpath)"
+        if FileManager.default.fileExists(atPath: legacyPath) {
+            return URL(fileURLWithPath: legacyPath)
         }
 #endif
 

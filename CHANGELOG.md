@@ -5,6 +5,16 @@ All notable changes to NotchBlock will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.5] — 2026-06-07
+
+### Fixed
+
+- **宠物不可见:** GIF 素材未打包进 App Bundle → `resolveGIFURL` 返回 nil → 宠物窗口透明。修复：将 `pets/elysia/` 同步到 `NotchBlock/Resources/Pets/elysia/` 并加入 Xcode Bundle Resources
+- **NSPanel 级别:** `.mainMenu`（系统保留）→ `.floating`（桌面悬浮标准级别）
+- **NSPanel 屏幕共享:** 添加 `.sharingType = .none` 防止宠物出现在 Zoom/Teams 屏幕捕获中
+- **DisplayLink 初始化竞态:** `NSScreen.main` 在 `App.init()` 期间可能为 nil。新增 `ensureDisplayLink()` 重试机制
+- **动画加载时机:** 在 `setupStateObservation()` 中显式调用 `handleStateChange`，不依赖 `@Published` 订阅时序
+
 ## [0.6.4] — 2026-06-07
 
 ### Added

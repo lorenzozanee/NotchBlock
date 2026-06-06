@@ -144,6 +144,14 @@ final class PetAnimationPlayer: ObservableObject {
         }
     }
 
+    /// Ensure the display link is running. Call after the first run-loop
+    /// spin if NSScreen.main was nil during init() (early app launch).
+    func ensureDisplayLink() {
+        guard displayLink == nil else { return }
+        createDisplayLink()
+        animationLogger.debug("Display link re-created (retry after nil screen)")
+    }
+
     // MARK: - Public API
 
     /// Load a new GIF and begin playback. Triggers crossfade from the current animation.

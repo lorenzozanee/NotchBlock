@@ -82,7 +82,9 @@ struct NotchBlockApp: App {
         scheduler.start()
         overlayController.requestNotificationPermission()
 
-        // 5. Initialize desktop pet if enabled
+        // 5. Initialize desktop pet if enabled.
+        //    NSScreen.main may be nil during init() — PetAnimationPlayer
+        //    retries via ensureDisplayLink() on first show().
         let petPrefs = PetPreferences()
         if petPrefs.isEnabled {
             let petSM = PetStateMachine(store: store, preferences: petPrefs)

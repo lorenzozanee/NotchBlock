@@ -99,10 +99,16 @@ struct PetOnboardingView: View {
             previewImage = image
             return
         }
-        // Development fallback
+        // Development fallback: Resources/Pets/ (primary dev location)
 #if DEBUG
         let devPath = "/Users/\(NSUserName())/projects/ccprojects/NotchBlock/NotchBlock/Resources/\(subpath)"
         if let image = NSImage(contentsOfFile: devPath) {
+            previewImage = image
+            return
+        }
+        // Secondary fallback: pets/ at project root (legacy location)
+        let legacyPath = "/Users/\(NSUserName())/projects/ccprojects/NotchBlock/\(subpath)"
+        if let image = NSImage(contentsOfFile: legacyPath) {
             previewImage = image
         }
 #endif

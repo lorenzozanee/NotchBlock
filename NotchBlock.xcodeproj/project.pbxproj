@@ -45,6 +45,7 @@
 		98B76300C2224051A9F49F6D /* BrandColors.swift */ = {isa = PBXBuildFile; fileRef = B80F271916A3D0413AFC914A /* BrandColors.swift */; };
 		4109E555E82094FFE4A0CCC6 /* UpdateChecker.swift */ = {isa = PBXBuildFile; fileRef = 8982475A346D406D89F74FEF /* UpdateChecker.swift */; };
 		5BFB3AC5498C548E2EAF1C43 /* Assets */ = {isa = PBXBuildFile; fileRef = 13161977E9C32ADDC42AA128 /* Assets */; };
+		1C12EBC63ACE70537B82AFB8 /* Pets */ = {isa = PBXBuildFile; fileRef = 16B3DAF09479370879D5815D /* Pets */; };
 		D32A862EFF8C789C2815D085 /* CHANGELOG */ = {isa = PBXBuildFile; fileRef = DBCB0023FD38F8152310591A /* CHANGELOG */; };
 		73F477CA759EBC513EB6600C /* Info.plist */ = {isa = PBXBuildFile; fileRef = 51FB5475FF8535F7775454AF /* Info.plist */; };
 /* End PBXBuildFile section */
@@ -88,6 +89,7 @@
 		B80F271916A3D0413AFC914A /* BrandColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BrandColors.swift"; sourceTree = "<group>"; };
 		8982475A346D406D89F74FEF /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UpdateChecker.swift"; sourceTree = "<group>"; };
 		13161977E9C32ADDC42AA128 /* Assets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Assets.xcassets"; sourceTree = "<group>"; };
+		16B3DAF09479370879D5815D /* Pets */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Pets; sourceTree = "<group>"; };
 		51FB5475FF8535F7775454AF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info.plist"; sourceTree = "<group>"; };
 		A734CCEF338A717792A212FE /* NotchBlock.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NotchBlock.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -176,6 +178,7 @@
 			isa = PBXGroup;
 			children = (
 				13161977E9C32ADDC42AA128 /* Assets */,
+				16B3DAF09479370879D5815D /* Pets */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -294,6 +297,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5BFB3AC5498C548E2EAF1C43 /* Assets in Resources */,
+				1C12EBC63ACE70537B82AFB8 /* Pets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

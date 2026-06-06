@@ -51,6 +51,7 @@ files = [
 
 resources = [
     ("Assets", "NotchBlock/Resources/Assets.xcassets"),
+    ("Pets", "NotchBlock/Resources/Pets"),
     ("CHANGELOG", "CHANGELOG.md"),
 ]
 
@@ -102,6 +103,8 @@ def file_refs_section():
         lines.append(f'\t\t{file_ref_ids[name]} /* {name} */ = {{isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "{name}"; sourceTree = "<group>"; }};')
     # Assets
     lines.append(f'\t\t{file_ref_ids["Assets"]} /* Assets */ = {{isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Assets.xcassets"; sourceTree = "<group>"; }};')
+    # Pets folder reference (recursively includes all GIFs as bundle resources)
+    lines.append(f'\t\t{file_ref_ids["Pets"]} /* Pets */ = {{isa = PBXFileReference; lastKnownFileType = folder; path = Pets; sourceTree = "<group>"; }};')
     # Info.plist (at source root, not in Resources/)
     lines.append(f'\t\t{info_plist_ref} /* Info.plist */ = {{isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info.plist"; sourceTree = "<group>"; }};')
     # Product
@@ -162,7 +165,7 @@ def groups_section():
 \t\t{resources_grp} = {{
 \t\t\tisa = PBXGroup;
 \t\t\tchildren = (
-{children(['Assets'])}
+{children(['Assets', 'Pets'])}
 \t\t\t);
 \t\t\tpath = Resources;
 \t\t\tsourceTree = "<group>";
@@ -253,7 +256,7 @@ src_files_block = "\n".join(
 
 res_files_block = "\n".join(
     f"\t\t\t\t{build_file_ids[n]} /* {n} in Resources */,"
-    for n in ["Assets"]  # Info.plist handled via INFOPLIST_FILE, not Copy Bundle Resources
+    for n in ["Assets", "Pets"]  # Info.plist handled via INFOPLIST_FILE, not Copy Bundle Resources
 )
 
 # ── Full pbxproj ─────────────────────────────────────────────────
