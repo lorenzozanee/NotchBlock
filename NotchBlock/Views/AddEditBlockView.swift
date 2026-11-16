@@ -2,28 +2,39 @@ import SwiftUI
 
 struct AddEditBlockView: View {
     @Environment(\.dismiss) private var dismiss
-    @ObservedObject var store: TimeBlockStore
+    let store: TimeBlockStore
 
     var existingBlock: TimeBlock?
 
-    @State private var title: String = ""
-    @State private var notes: String = ""
-    @State private var startTime: Date = Date()
-    @State private var endTime: Date = Date().addingTimeInterval(3600)
+    @State private var draftID = UUID()
+    @State private var title = ""
+    @State private var notes = ""
+    @State private var startTime = Date()
+    @State private var endTime = Date().addingTimeInterval(3600)
     @State private var showConflictAlert = false
     @State private var conflictMessage = ""
 
     private var isEditing: Bool { existingBlock != nil }
+    private var isTimeRangeValid: Bool { startTime < endTime }
+    private var isTitleValid: Bool { !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
 
     var body: some View {
         VStack(spacing: 0) {
             headerBar
-            Divider()
+            MinimalHairline()
             formContent
-            Divider()
+            MinimalHairline()
             footerBar
         }
         .frame(width: 380)
+        .background {
+            FrostedGlassBackground(
+                material: .hudWindow,
+                tint: BrandColors.canvasGlass
+            )
+            .ignoresSafeArea()
+        }
+        .tint(BrandColors.accentText)
         .onAppear(perform: populateExisting)
         .alert("时间冲突", isPresented: $showConflictAlert) {
             Button("返回修改", role: .cancel) {}
@@ -38,6 +49,7 @@ struct AddEditBlockView: View {
         HStack {
             Text(isEditing ? "编辑任务" : "新建任务")
                 .font(.headline)
+                .foregroundStyle(BrandColors.textPrimary)
             Spacer()
         }
         .padding(.horizontal, 20)
@@ -47,85 +59,83 @@ struct AddEditBlockView: View {
     // MARK: - Form
 
     private var formContent: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            titleField
-            notesField
-            timePickers
-            conflictWarning
+        VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("任务名称")
+                    .font(.caption)
+                    .foregroundStyle(BrandColors.textSecondary)
+                TextField("深度工作、代码审查...", text: $title)
+                    .minimalInput()
+            }
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text("备注")
+                    .font(.caption)
+                    .foregroundStyle(BrandColors.textSecondary)
+                TextField("可选", text: $notes)
+                    .minimalInput()
+            }
+
+            HStack(spacing: 16) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("开始")
+                        .font(.caption)
+                        .foregroundStyle(BrandColors.textSecondary)
+                    DatePicker("", selection: $startTime, displayedComponents: .hourAndMinute)
+                        .labelsHidden()
+                        .onChange(of: startTime) { _, newValue in
+                            if newValue >= endTime {
+                                endTime = newValue.addingTimeInterval(1800)
+                            }
+                        }
+                }
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("结束")
+                        .font(.caption)
+                        .foregroundStyle(BrandColors.textSecondary)
+                    DatePicker("", selection: $endTime, displayedComponents: .hourAndMinute)
+                        .labelsHidden()
+                }
+            }
+
+            if !isTimeRangeValid {
+                Label("结束时间需晚于开始时间", systemImage: "exclamationmark.circle")
+                    .font(.caption)
+                    .foregroundStyle(BrandColors.missed)
+            } else if !detectConflicts().isEmpty {
+                Label("与已有任务时间重叠", systemImage: "exclamationmark.triangle")
+                    .font(.caption)
+                    .foregroundStyle(BrandColors.accentText)
+            }
         }
         .padding(20)
-    }
-
-    private var titleField: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("任务名称").font(.caption).foregroundStyle(.secondary)
-            TextField("例如：深度工作、代码审查", text: $title)
-                .textFieldStyle(.roundedBorder)
-        }
-    }
-
-    private var notesField: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("备注 (可选)").font(.caption).foregroundStyle(.secondary)
-            TextField("任务描述、目标、注意事项...", text: $notes)
-                .textFieldStyle(.roundedBorder)
-        }
-    }
-
-    private var timePickers: some View {
-        HStack(spacing: 16) {
-            VStack(alignment: .leading, spacing: 6) {
-                Text("开始时间").font(.caption).foregroundStyle(.secondary)
-                DatePicker("", selection: $startTime, displayedComponents: .hourAndMinute)
-                    .labelsHidden()
-                    .onChange(of: startTime) { _, newValue in
-                        if newValue >= endTime {
-                            endTime = newValue.addingTimeInterval(1800)
-                        }
-                    }
-            }
-
-            VStack(alignment: .leading, spacing: 6) {
-                Text("结束时间").font(.caption).foregroundStyle(.secondary)
-                DatePicker("", selection: $endTime, displayedComponents: .hourAndMinute)
-                    .labelsHidden()
-            }
-        }
-    }
-
-    @ViewBuilder
-    private var conflictWarning: some View {
-        let conflicts = detectConflicts()
-        if !conflicts.isEmpty {
-            HStack(spacing: 6) {
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .foregroundStyle(.yellow)
-                Text("与已有任务时间冲突")
-                    .font(.caption)
-                    .foregroundStyle(.yellow)
-            }
-        }
     }
 
     // MARK: - Footer
 
     private var footerBar: some View {
-        HStack {
+        HStack(spacing: 10) {
             if isEditing {
-                Button("删除任务", role: .destructive) {
+                Button("删除", role: .destructive) {
                     if let block = existingBlock {
                         store.delete(block)
                     }
                     dismiss()
                 }
+                .buttonStyle(MinimalSecondaryButtonStyle(horizontalPadding: 12, verticalPadding: 6, isDestructive: true))
             }
+
             Spacer()
+
             Button("取消") { dismiss() }
+                .buttonStyle(MinimalSecondaryButtonStyle(horizontalPadding: 14, verticalPadding: 6))
                 .keyboardShortcut(.cancelAction)
+
             Button("保存") { save() }
-                .keyboardShortcut(.return)
-                .buttonStyle(.borderedProminent)
-                .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty)
+                .buttonStyle(MinimalPrimaryButtonStyle(horizontalPadding: 16, verticalPadding: 6))
+                .keyboardShortcut(.defaultAction)
+                .disabled(!isTitleValid || !isTimeRangeValid)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
@@ -143,7 +153,7 @@ struct AddEditBlockView: View {
 
     private func detectConflicts() -> [TimeBlock] {
         let tempBlock = TimeBlock(
-            id: existingBlock?.id ?? UUID(),
+            id: existingBlock?.id ?? draftID,
             title: title,
             startTime: startTime,
             endTime: endTime
@@ -152,9 +162,9 @@ struct AddEditBlockView: View {
     }
 
     private func save() {
-        let trimmedTitle = title.trimmingCharacters(in: .whitespaces)
-        guard !trimmedTitle.isEmpty else { return }
-        guard startTime < endTime else { return }
+        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedNotes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedTitle.isEmpty, startTime < endTime else { return }
 
         let conflicts = detectConflicts()
         if !conflicts.isEmpty {
@@ -167,16 +177,21 @@ struct AddEditBlockView: View {
 
         if let existing = existingBlock {
             let updated = TimeBlock(
-                id: existing.id, title: trimmedTitle,
-                startTime: startTime, endTime: endTime,
-                status: existing.status, notes: notes.trimmingCharacters(in: .whitespaces)
+                id: existing.id,
+                title: trimmedTitle,
+                startTime: startTime,
+                endTime: endTime,
+                status: existing.status,
+                notes: trimmedNotes,
+                isBreak: existing.isBreak
             )
             store.update(updated)
         } else {
             let newBlock = TimeBlock(
                 title: trimmedTitle,
-                startTime: startTime, endTime: endTime,
-                notes: notes.trimmingCharacters(in: .whitespaces)
+                startTime: startTime,
+                endTime: endTime,
+                notes: trimmedNotes
             )
             store.add(newBlock)
         }
@@ -186,6 +201,6 @@ struct AddEditBlockView: View {
 
 #if DEBUG
 #Preview {
-    AddEditBlockView(store: TimeBlockStore())
+    AddEditBlockView(store: TimeBlockStore(userDefaults: UserDefaults(suiteName: "preview.addedit") ?? .standard))
 }
 #endif

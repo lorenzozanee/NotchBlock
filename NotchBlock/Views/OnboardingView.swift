@@ -1,7 +1,6 @@
 import SwiftUI
 
-/// First-launch setup wizard. 3-step TabView with skip.
-/// Replaces the old `sendWelcomeNotification()` flow.
+/// Minimalist frosted-glass 3-step onboarding wizard.
 struct OnboardingView: View {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @AppStorage("focusStartHour") private var focusStartHour = 9
@@ -15,20 +14,25 @@ struct OnboardingView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
+            ZStack {
                 HStack(spacing: 8) {
-                    ForEach(0..<pages, id: \.self) { i in
-                        Circle()
-                            .fill(i == currentPage ? BrandColors.accent : .secondary.opacity(0.3))
-                            .frame(width: 8, height: 8)
-                            .animation(.smooth, value: currentPage)
+                    ForEach(0..<pages, id: \.self) { index in
+                        Capsule()
+                            .fill(index == currentPage ? BrandColors.accentText : BrandColors.hairline)
+                            .frame(width: index == currentPage ? 18 : 7, height: 7)
+                            .animation(.smooth(duration: 0.25), value: currentPage)
                     }
                 }
-                Spacer()
-                Button("跳过") { finish() }
-                    .buttonStyle(.plain).foregroundStyle(.secondary)
+                HStack {
+                    Spacer()
+                    Button("跳过") { finish() }
+                        .buttonStyle(.plain)
+                        .font(.caption)
+                        .foregroundStyle(BrandColors.textSecondary)
+                }
             }
-            .padding(.horizontal, 28).padding(.top, 20)
+            .padding(.horizontal, 28)
+            .padding(.top, 8)
 
             Group {
                 switch currentPage {
@@ -38,138 +42,189 @@ struct OnboardingView: View {
                 }
             }
             .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
-            .animation(.smooth(duration: 0.3), value: currentPage)
-            .frame(minHeight: 360)
+            .animation(.smooth(duration: 0.28), value: currentPage)
+            .frame(maxHeight: .infinity)
 
             HStack {
                 if currentPage > 0 {
-                    Button("上一步") { withAnimation { currentPage -= 1 } }
-                        .buttonStyle(.plain).foregroundStyle(.secondary)
+                    Button("上一步") {
+                        withAnimation { currentPage -= 1 }
+                    }
+                    .buttonStyle(MinimalSecondaryButtonStyle(horizontalPadding: 14, verticalPadding: 7))
                 }
                 Spacer()
                 Button(currentPage < pages - 1 ? "下一步" : "开始使用") {
                     if currentPage < pages - 1 {
                         withAnimation { currentPage += 1 }
-                    } else { finish() }
+                    } else {
+                        finish()
+                    }
                 }
-                .buttonStyle(.borderedProminent).tint(BrandColors.accent)
+                .buttonStyle(MinimalPrimaryButtonStyle(horizontalPadding: 18, verticalPadding: 7))
             }
-            .padding(.horizontal, 28).padding(.bottom, 20)
+            .padding(.horizontal, 28)
+            .padding(.bottom, 22)
         }
-        .frame(width: 480, height: 460)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
+        .frame(width: 460, height: 440)
+        .background {
+            FrostedGlassBackground(
+                material: .hudWindow,
+                tint: BrandColors.panelGlass,
+                cornerRadius: 10,
+                showBorder: true
+            )
+            .ignoresSafeArea()
+        }
+        .tint(BrandColors.accentText)
+        .onAppear {
+            launchAtLogin = LaunchManager.isLoginItemEnabled
+        }
     }
 
     // MARK: - Page 1
 
     private var welcomePage: some View {
-        VStack(spacing: 24) {
-            Image(systemName: "timer.circle.fill")
-                .font(.system(size: 64, weight: .light))
-                .foregroundStyle(BrandColors.accent)
-                .symbolEffect(.pulse, options: .repeating)
-
-            Text("欢迎使用 NotchBlock")
-                .font(.title.weight(.bold))
-
-            Text("利用 Mac 刘海，轻松管理你的时间块")
-                .font(.body).foregroundStyle(.secondary)
-
-            VStack(alignment: .leading, spacing: 16) {
-                row(icon: "rectangle.and.hand.point.up.left", title: "刘海预览", desc: "鼠标悬停 Mac 刘海，快速查看今日任务")
-                row(icon: "square.grid.3x3.fill", title: "时间块排程", desc: "将一天划分为专注时间块，菜单栏管理")
-                row(icon: "eye.fill", title: "全屏专注", desc: "任务结束全屏遮罩提醒，保持节奏")
+        VStack(spacing: 20) {
+            ZStack {
+                Circle()
+                    .fill(BrandColors.accentSoft)
+                    .frame(width: 64, height: 64)
+                Circle()
+                    .strokeBorder(BrandColors.accentBorder, lineWidth: 1)
+                    .frame(width: 64, height: 64)
+                Image(systemName: "timer")
+                    .font(.system(size: 28, weight: .light))
+                    .foregroundStyle(BrandColors.accentText)
             }
-            .padding(24)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
+
+            VStack(spacing: 6) {
+                Text("NotchBlock")
+                    .font(.title2.weight(.semibold))
+                    .foregroundStyle(BrandColors.textPrimary)
+                Text("刘海时间块与全屏专注提醒")
+                    .font(.subheadline)
+                    .foregroundStyle(BrandColors.textSecondary)
+            }
+
+            VStack(alignment: .leading, spacing: 14) {
+                featureRow(icon: "rectangle.and.hand.point.up.left", title: "刘海悬停预览")
+                featureRow(icon: "square.grid.2x2", title: "菜单栏快捷排程")
+                featureRow(icon: "bell", title: "全屏结束强提醒")
+            }
+            .padding(18)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .minimalCard(cornerRadius: 12)
         }
-        .padding(.horizontal, 40).padding(.vertical, 20)
+        .padding(.horizontal, 34)
     }
 
-    private func row(icon: String, title: String, desc: String) -> some View {
+    private func featureRow(icon: String, title: String) -> some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
-                .font(.title3).foregroundStyle(BrandColors.accent).frame(width: 24)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(.headline)
-                Text(desc).font(.caption).foregroundStyle(.secondary)
-            }
+                .font(.subheadline)
+                .foregroundStyle(BrandColors.accentText)
+                .frame(width: 22)
+            Text(title)
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(BrandColors.textPrimary)
         }
     }
 
     // MARK: - Page 2
 
     private var preferencesPage: some View {
-        VStack(spacing: 24) {
-            Image(systemName: "gearshape.fill")
-                .font(.system(size: 48, weight: .light))
-                .foregroundStyle(BrandColors.accent)
+        VStack(spacing: 20) {
+            Text("专注时段")
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(BrandColors.textPrimary)
 
-            Text("快速设置").font(.title.weight(.bold))
-            Text("配置你的专注时段，稍后可在菜单栏调整")
-                .font(.body).foregroundStyle(.secondary)
-
-            VStack(spacing: 16) {
+            VStack(spacing: 14) {
                 HStack {
-                    Label("每日开始时间", systemImage: "sunrise")
+                    Label("每日开始", systemImage: "sunrise")
+                        .font(.subheadline)
+                        .foregroundStyle(BrandColors.textPrimary)
                     Spacer()
                     Picker("", selection: $focusStartHour) {
-                        ForEach(6..<18, id: \.self) { h in
-                            Text(String(format: "%02d:00", h)).tag(h)
+                        ForEach(6..<18, id: \.self) { hour in
+                            Text(String(format: "%02d:00", hour)).tag(hour)
                         }
-                    }.labelsHidden()
+                    }
+                    .labelsHidden()
+                    .onChange(of: focusStartHour) { _, newStart in
+                        if focusEndHour <= newStart {
+                            focusEndHour = min(24, newStart + 1)
+                        }
+                    }
                 }
-                Divider()
+                MinimalHairline()
                 HStack {
-                    Label("每日结束时间", systemImage: "sunset")
+                    Label("每日结束", systemImage: "sunset")
+                        .font(.subheadline)
+                        .foregroundStyle(BrandColors.textPrimary)
                     Spacer()
                     Picker("", selection: $focusEndHour) {
-                        ForEach(12..<24, id: \.self) { h in
-                            Text(String(format: "%02d:00", h)).tag(h)
+                        ForEach(12..<24, id: \.self) { hour in
+                            Text(String(format: "%02d:00", hour)).tag(hour)
                         }
-                    }.labelsHidden()
+                    }
+                    .labelsHidden()
+                    .onChange(of: focusEndHour) { _, newEnd in
+                        if newEnd <= focusStartHour {
+                            focusStartHour = max(0, newEnd - 1)
+                        }
+                    }
                 }
-                Divider()
+                MinimalHairline()
                 Toggle(isOn: $launchAtLogin) {
                     Label("开机自动启动", systemImage: "power")
+                        .font(.subheadline)
+                        .foregroundStyle(BrandColors.textPrimary)
                 }
-                .onChange(of: launchAtLogin) { _, val in
-                    do { try LaunchManager.setLoginItemEnabled(val) }
-                    catch { launchAtLogin = !val }
+                .onChange(of: launchAtLogin) { _, enabled in
+                    guard enabled != LaunchManager.isLoginItemEnabled else { return }
+                    do {
+                        try LaunchManager.setLoginItemEnabled(enabled)
+                    } catch {
+                        launchAtLogin = LaunchManager.isLoginItemEnabled
+                    }
                 }
             }
-            .padding(24)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
+            .padding(18)
+            .minimalCard(cornerRadius: 12)
         }
-        .padding(.horizontal, 40).padding(.vertical, 20)
+        .padding(.horizontal, 34)
     }
 
     // MARK: - Page 3
 
     private var completionPage: some View {
-        VStack(spacing: 24) {
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 64, weight: .light))
-                .foregroundStyle(.green)
-
-            Text("准备就绪！").font(.title.weight(.bold))
-
-            VStack(spacing: 8) {
-                Text("• 点击菜单栏图标查看和管理排程")
-                Text("• 鼠标悬停在 Mac 刘海快速预览任务")
-                Text("• 任务结束时全屏提醒，保持专注")
+        VStack(spacing: 16) {
+            ZStack {
+                Circle()
+                    .fill(BrandColors.accentSoft)
+                    .frame(width: 64, height: 64)
+                Circle()
+                    .strokeBorder(BrandColors.accentBorder, lineWidth: 1)
+                    .frame(width: 64, height: 64)
+                Image(systemName: "checkmark")
+                    .font(.system(size: 26, weight: .medium))
+                    .foregroundStyle(BrandColors.accentText)
             }
-            .font(.body).foregroundStyle(.secondary)
 
-            Text("现在开始安排你的一天吧 🎯")
-                .font(.headline).foregroundStyle(BrandColors.accent)
+            Text("准备就绪")
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(BrandColors.textPrimary)
+
+            Text("已为你准备示例日程，可从菜单栏随时调整")
+                .font(.caption)
+                .foregroundStyle(BrandColors.textSecondary)
+                .multilineTextAlignment(.center)
         }
-        .padding(.horizontal, 40).padding(.vertical, 20)
+        .padding(.horizontal, 34)
     }
 
     private func finish() {
         hasCompletedOnboarding = true
-        if launchAtLogin { try? LaunchManager.setLoginItemEnabled(true) }
         onComplete()
     }
 }

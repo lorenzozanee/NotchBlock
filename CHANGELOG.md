@@ -5,6 +5,24 @@ All notable changes to NotchBlock will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] — 2026-11-16
+
+### Added
+
+- **全新极简磨砂玻璃 UI（自适应深浅色）:** 浅色模式采用纯白 + 淡绿色点缀，深色模式采用纯黑 + 深紫色点缀，所有窗口、卡片、输入框、菜单栏弹窗与全屏遮罩统一基于原生 `NSVisualEffectView` 毛玻璃材质实现
+- **独立菜单栏弹窗与原生偏好设置:** 新增 `MenuBarPopoverView`（支持进行中任务倒计时、快速创建 30 分钟任务）与 `SettingsView`（通用、微信通知、更新标签页）
+- **UI 主题与端到端测试:** 新增 `UIThemeTests`，覆盖深浅色动态配色、全视图布局及调度/休息/全屏遮罩完整流程
+
+### Changed
+
+- **Swift 6 严格并发与现代 macOS 架构升级:** 全面迁移至 `SWIFT_VERSION = 6.0`、`@Observable` + `@MainActor` 状态管理、结构化异步任务与 `OSLog` 日志系统
+- **窗口与刘海面板生命周期优化:** `MainWindowController` 延迟创建主窗口避免启动闪烁；`NotchPanelController` 动态测量 `fittingSize`；`ScheduleTimelineView` 重构时间轴排版
+- **项目与技能精简:** 移除过时规划文档、旧脚本与冗余 `.claude` 规则，保留轻量 Swift/macOS 开发技能
+
+### Removed
+
+- **移除桌面宠物（Elysia）功能:** 清理全部 Pet 模型、窗口控制器、视图、GIF 资源及对应测试，聚焦核心刘海时间块与全屏强制专注体验
+
 ## [0.6.7] — 2026-06-07
 
 ### Fixed

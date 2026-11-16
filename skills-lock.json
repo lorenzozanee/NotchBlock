@@ -1,0 +1,29 @@
+{
+  "version": 2,
+  "skills": {
+    "macos-patterns": {
+      "source": "fayazara/macos-app-skills",
+      "commit": "a60365ae85bfc3d1f2f8b260b080d77bfb2f3ec0",
+      "sourceType": "github",
+      "skillPath": "macos-patterns/SKILL.md",
+      "computedHash": "112d19cf0a023ff5c8595d54b32db4bc65b69abdf78ae5ab7e2b3f97c09d18a3",
+      "installMode": "copy"
+    },
+    "swift-concurrency-pro": {
+      "source": "twostraws/Swift-Concurrency-Agent-Skill",
+      "commit": "bee3f69ba17142da148d3c5406f148ed62592b69",
+      "sourceType": "github",
+      "skillPath": "swift-concurrency-pro/SKILL.md",
+      "computedHash": "7114b0d918f5fe384bb357c9887790a167670fe5fbd3b0d837ca75a4ef9ae9bd",
+      "installMode": "copy"
+    },
+    "swiftui-expert-skill": {
+      "source": "AvdLee/SwiftUI-Agent-Skill",
+      "commit": "62bd760f005093d1e2e4de5db156e456a5f96400",
+      "sourceType": "github",
+      "skillPath": "skills/swiftui-expert-skill/SKILL.md",
+      "computedHash": "187f7d0b9b9103f0935460c1b8060a77131c5ef24fa0d6757f5f5afdd23b7966",
+      "installMode": "copy"
+    }
+  }
+}

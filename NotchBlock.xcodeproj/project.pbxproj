@@ -10,23 +10,16 @@
 		8383FAF30DE4657E69E8D635 /* NotchBlockApp.swift */ = {isa = PBXBuildFile; fileRef = 4E9C89A0D55E76588652C573 /* NotchBlockApp.swift */; };
 		7C0D1BF2DBBB36B46ABE816B /* TimeBlock.swift */ = {isa = PBXBuildFile; fileRef = B3BAC5908C53565931E8E5B3 /* TimeBlock.swift */; };
 		A24379B43F5B19475134E206 /* BlockStatus.swift */ = {isa = PBXBuildFile; fileRef = DEE5F99D1E5A2B5F5EFC906B /* BlockStatus.swift */; };
-		183191984B4A0EF1085D0F68 /* PetState.swift */ = {isa = PBXBuildFile; fileRef = 67B11FBB3FEBB64F15731054 /* PetState.swift */; };
-		1F9118CE356C02B525C849D4 /* PetProtocol.swift */ = {isa = PBXBuildFile; fileRef = 01235A2E4277A38B12739870 /* PetProtocol.swift */; };
-		A6E3EDD93D24CBB21C6ACE2C /* PetConfig.swift */ = {isa = PBXBuildFile; fileRef = 1AD65779FFA5C8725B2276D8 /* PetConfig.swift */; };
-		FDBDD414C1E222B9A6DFA6E6 /* PetPreferences.swift */ = {isa = PBXBuildFile; fileRef = 4C8C750521149947986BE3BB /* PetPreferences.swift */; };
 		1827B5DFE545B020B2CC2A09 /* TimeBlockStore.swift */ = {isa = PBXBuildFile; fileRef = 78F1B4E40556969EB6AF68BD /* TimeBlockStore.swift */; };
 		7644BA616FBCF421D1A1ECDC /* NotchTracker.swift */ = {isa = PBXBuildFile; fileRef = 29277D297998F7E6FB6F5F62 /* NotchTracker.swift */; };
 		C9837466F3C579E56F3068BD /* NotchPanelController.swift */ = {isa = PBXBuildFile; fileRef = 8029C4F7FC61995D8B4CE4D6 /* NotchPanelController.swift */; };
 		15F109F398E0B965595113EF /* OverlayWindowController.swift */ = {isa = PBXBuildFile; fileRef = F9BBB253B58E64373130DCA9 /* OverlayWindowController.swift */; };
 		8F039BF1E6CDEF905A17E946 /* OnboardingWindowController.swift */ = {isa = PBXBuildFile; fileRef = 2A37D7EE1051E51ACF5FBDE8 /* OnboardingWindowController.swift */; };
+		817C295158544461A3499A6A /* MainWindowController.swift */ = {isa = PBXBuildFile; fileRef = 4150A378E6D4280C93FC7EA0 /* MainWindowController.swift */; };
 		B3D75FCDC0095A4D0260E1C8 /* BlockScheduler.swift */ = {isa = PBXBuildFile; fileRef = 7350155EDA5DB8476A4BC699 /* BlockScheduler.swift */; };
 		33DBB9FF474E706498793066 /* BreakScheduler.swift */ = {isa = PBXBuildFile; fileRef = 5BE6271F4A22EC4C768361D7 /* BreakScheduler.swift */; };
 		3981874C54C3C832728AC378 /* WeChatNotifier.swift */ = {isa = PBXBuildFile; fileRef = B35A4B0B43F020AEC131D9B7 /* WeChatNotifier.swift */; };
 		91E1F3E9E728C323D4327D3C /* StatisticsStore.swift */ = {isa = PBXBuildFile; fileRef = EC6C4D3F58E9E086C0F3C914 /* StatisticsStore.swift */; };
-		9A1D99052C9FF1322BC7542D /* PetAnimationPlayer.swift */ = {isa = PBXBuildFile; fileRef = A67C3A111729868D0914498E /* PetAnimationPlayer.swift */; };
-		6CD585A1F51DC055D6863C98 /* PetInteractionHandler.swift */ = {isa = PBXBuildFile; fileRef = C7613A504A5A226B713760E4 /* PetInteractionHandler.swift */; };
-		9F3DBB8094BEB47183CBBE91 /* PetStateMachine.swift */ = {isa = PBXBuildFile; fileRef = F81FE86748FDCAF58ADDD402 /* PetStateMachine.swift */; };
-		942B4CC3228A063BE183F3D9 /* PetWindowController.swift */ = {isa = PBXBuildFile; fileRef = 7B7840826D81D13F9EB71904 /* PetWindowController.swift */; };
 		7748E12741CC0ECAA0A64779 /* MainSchedulerView.swift */ = {isa = PBXBuildFile; fileRef = A55EEF8D85F866C0E80B9F55 /* MainSchedulerView.swift */; };
 		AE8F5429523A9CC02671E038 /* TimeBlockRowView.swift */ = {isa = PBXBuildFile; fileRef = C4DE7C509DDAEBD8CA1F84BD /* TimeBlockRowView.swift */; };
 		C889242EF1C522AB7E3C9BFE /* AddEditBlockView.swift */ = {isa = PBXBuildFile; fileRef = BEC23808B740FADBEF75200C /* AddEditBlockView.swift */; };
@@ -35,42 +28,49 @@
 		F31594D6B0E467B646BEEA07 /* WeChatSettingsView.swift */ = {isa = PBXBuildFile; fileRef = 676DDB71144EFF5746229FD5 /* WeChatSettingsView.swift */; };
 		8D8CEB546F27BF9553BF48E5 /* StatisticsView.swift */ = {isa = PBXBuildFile; fileRef = 23C69940C13A81DFC377476C /* StatisticsView.swift */; };
 		E472A7F85EF4D285EEA54200 /* OnboardingView.swift */ = {isa = PBXBuildFile; fileRef = 57B16B687C8CFAC274EB6392 /* OnboardingView.swift */; };
-		C5E1DCDDEB25DDFE84323E79 /* TimelineView.swift */ = {isa = PBXBuildFile; fileRef = 6A77824291F92C476EEF5429 /* TimelineView.swift */; };
+		1B4BFC1251BE6256866D8A97 /* ScheduleTimelineView.swift */ = {isa = PBXBuildFile; fileRef = 9B7395461E1A3A3E9CCF359F /* ScheduleTimelineView.swift */; };
 		AB34DE7CE2356C1A59388CC1 /* MenuBarIconView.swift */ = {isa = PBXBuildFile; fileRef = B9CA55ABDAA86A9B7E1A52D0 /* MenuBarIconView.swift */; };
+		C45F5B61F9F8283299020E36 /* MenuBarPopoverView.swift */ = {isa = PBXBuildFile; fileRef = E416D47FF098154FCDC6FE2F /* MenuBarPopoverView.swift */; };
+		A12702A72B1F851F82340ABD /* SettingsView.swift */ = {isa = PBXBuildFile; fileRef = 6295B568A82554391D743C7E /* SettingsView.swift */; };
 		62CDCD01EB26F5EC1F6A75CE /* WhatsNewView.swift */ = {isa = PBXBuildFile; fileRef = A5AD1428373BE60BD92EAB93 /* WhatsNewView.swift */; };
-		6BFF1CF06373F721C8E10D39 /* PetView.swift */ = {isa = PBXBuildFile; fileRef = 2AFBBFAFEE3D47C809D793D2 /* PetView.swift */; };
-		FAB1A67508F9C6BE00467749 /* PetOnboardingView.swift */ = {isa = PBXBuildFile; fileRef = 08FD19282EA8C9A254C576B4 /* PetOnboardingView.swift */; };
+		771836FC608165DCA6A514DE /* MinimalComponents.swift */ = {isa = PBXBuildFile; fileRef = BA93DB6C2AD3954E1C742330 /* MinimalComponents.swift */; };
 		05E3945FA3BCF89E04CCA183 /* DateExtensions.swift */ = {isa = PBXBuildFile; fileRef = 5404929B171D255696DC34DE /* DateExtensions.swift */; };
 		6C2129AFAFFF8B7254C90DEB /* LaunchManager.swift */ = {isa = PBXBuildFile; fileRef = 7B82270FE5C20AF2B1F0E39E /* LaunchManager.swift */; };
 		98B76300C2224051A9F49F6D /* BrandColors.swift */ = {isa = PBXBuildFile; fileRef = B80F271916A3D0413AFC914A /* BrandColors.swift */; };
 		4109E555E82094FFE4A0CCC6 /* UpdateChecker.swift */ = {isa = PBXBuildFile; fileRef = 8982475A346D406D89F74FEF /* UpdateChecker.swift */; };
+		27B45503D8FCAC1837FF064E /* NSScreen+Notch.swift */ = {isa = PBXBuildFile; fileRef = AA7C971945DED02A659B8457 /* NSScreen+Notch.swift */; };
+		11F53A457E5F550DC1C6EE0F /* TimeBlockTests.swift */ = {isa = PBXBuildFile; fileRef = 4819D21BD2AF5ABEE715F4D4 /* TimeBlockTests.swift */; };
+		11E4B81A3C0C6D51DCA96EC1 /* StatisticsTests.swift */ = {isa = PBXBuildFile; fileRef = 88F2F016E18485F26C8D309D /* StatisticsTests.swift */; };
+		BC7F825FCE5D18A7CBEF3603 /* UpdateCheckerTests.swift */ = {isa = PBXBuildFile; fileRef = 8530A222DC06AB2B08E1BA76 /* UpdateCheckerTests.swift */; };
+		6980D8B12C1F1CD1958A9414 /* UIThemeTests.swift */ = {isa = PBXBuildFile; fileRef = CBC64AD9BF25CB5194995E7D /* UIThemeTests.swift */; };
 		5BFB3AC5498C548E2EAF1C43 /* Assets */ = {isa = PBXBuildFile; fileRef = 13161977E9C32ADDC42AA128 /* Assets */; };
-		1C12EBC63ACE70537B82AFB8 /* Pets */ = {isa = PBXBuildFile; fileRef = 16B3DAF09479370879D5815D /* Pets */; };
 		D32A862EFF8C789C2815D085 /* CHANGELOG */ = {isa = PBXBuildFile; fileRef = DBCB0023FD38F8152310591A /* CHANGELOG */; };
-		73F477CA759EBC513EB6600C /* Info.plist */ = {isa = PBXBuildFile; fileRef = 51FB5475FF8535F7775454AF /* Info.plist */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		9DCD3E47D9D8D8963CA3F63B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = EC553E7FBC3AD0AD7AB94BDF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9E440566B19C12EF065B2306;
+			remoteInfo = NotchBlock;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		4E9C89A0D55E76588652C573 /* NotchBlockApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NotchBlockApp.swift"; sourceTree = "<group>"; };
 		B3BAC5908C53565931E8E5B3 /* TimeBlock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TimeBlock.swift"; sourceTree = "<group>"; };
 		DEE5F99D1E5A2B5F5EFC906B /* BlockStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BlockStatus.swift"; sourceTree = "<group>"; };
-		67B11FBB3FEBB64F15731054 /* PetState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PetState.swift"; sourceTree = "<group>"; };
-		01235A2E4277A38B12739870 /* PetProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PetProtocol.swift"; sourceTree = "<group>"; };
-		1AD65779FFA5C8725B2276D8 /* PetConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PetConfig.swift"; sourceTree = "<group>"; };
-		4C8C750521149947986BE3BB /* PetPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PetPreferences.swift"; sourceTree = "<group>"; };
 		78F1B4E40556969EB6AF68BD /* TimeBlockStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TimeBlockStore.swift"; sourceTree = "<group>"; };
 		29277D297998F7E6FB6F5F62 /* NotchTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NotchTracker.swift"; sourceTree = "<group>"; };
 		8029C4F7FC61995D8B4CE4D6 /* NotchPanelController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NotchPanelController.swift"; sourceTree = "<group>"; };
 		F9BBB253B58E64373130DCA9 /* OverlayWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverlayWindowController.swift"; sourceTree = "<group>"; };
 		2A37D7EE1051E51ACF5FBDE8 /* OnboardingWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OnboardingWindowController.swift"; sourceTree = "<group>"; };
+		4150A378E6D4280C93FC7EA0 /* MainWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MainWindowController.swift"; sourceTree = "<group>"; };
 		7350155EDA5DB8476A4BC699 /* BlockScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BlockScheduler.swift"; sourceTree = "<group>"; };
 		5BE6271F4A22EC4C768361D7 /* BreakScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BreakScheduler.swift"; sourceTree = "<group>"; };
 		B35A4B0B43F020AEC131D9B7 /* WeChatNotifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WeChatNotifier.swift"; sourceTree = "<group>"; };
 		EC6C4D3F58E9E086C0F3C914 /* StatisticsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StatisticsStore.swift"; sourceTree = "<group>"; };
-		A67C3A111729868D0914498E /* PetAnimationPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PetAnimationPlayer.swift"; sourceTree = "<group>"; };
-		C7613A504A5A226B713760E4 /* PetInteractionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PetInteractionHandler.swift"; sourceTree = "<group>"; };
-		F81FE86748FDCAF58ADDD402 /* PetStateMachine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PetStateMachine.swift"; sourceTree = "<group>"; };
-		7B7840826D81D13F9EB71904 /* PetWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PetWindowController.swift"; sourceTree = "<group>"; };
 		A55EEF8D85F866C0E80B9F55 /* MainSchedulerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MainSchedulerView.swift"; sourceTree = "<group>"; };
 		C4DE7C509DDAEBD8CA1F84BD /* TimeBlockRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TimeBlockRowView.swift"; sourceTree = "<group>"; };
 		BEC23808B740FADBEF75200C /* AddEditBlockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AddEditBlockView.swift"; sourceTree = "<group>"; };
@@ -79,22 +79,39 @@
 		676DDB71144EFF5746229FD5 /* WeChatSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WeChatSettingsView.swift"; sourceTree = "<group>"; };
 		23C69940C13A81DFC377476C /* StatisticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StatisticsView.swift"; sourceTree = "<group>"; };
 		57B16B687C8CFAC274EB6392 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OnboardingView.swift"; sourceTree = "<group>"; };
-		6A77824291F92C476EEF5429 /* TimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TimelineView.swift"; sourceTree = "<group>"; };
+		9B7395461E1A3A3E9CCF359F /* ScheduleTimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ScheduleTimelineView.swift"; sourceTree = "<group>"; };
 		B9CA55ABDAA86A9B7E1A52D0 /* MenuBarIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MenuBarIconView.swift"; sourceTree = "<group>"; };
+		E416D47FF098154FCDC6FE2F /* MenuBarPopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MenuBarPopoverView.swift"; sourceTree = "<group>"; };
+		6295B568A82554391D743C7E /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsView.swift"; sourceTree = "<group>"; };
 		A5AD1428373BE60BD92EAB93 /* WhatsNewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WhatsNewView.swift"; sourceTree = "<group>"; };
-		2AFBBFAFEE3D47C809D793D2 /* PetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PetView.swift"; sourceTree = "<group>"; };
-		08FD19282EA8C9A254C576B4 /* PetOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PetOnboardingView.swift"; sourceTree = "<group>"; };
+		BA93DB6C2AD3954E1C742330 /* MinimalComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MinimalComponents.swift"; sourceTree = "<group>"; };
 		5404929B171D255696DC34DE /* DateExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DateExtensions.swift"; sourceTree = "<group>"; };
 		7B82270FE5C20AF2B1F0E39E /* LaunchManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LaunchManager.swift"; sourceTree = "<group>"; };
 		B80F271916A3D0413AFC914A /* BrandColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BrandColors.swift"; sourceTree = "<group>"; };
 		8982475A346D406D89F74FEF /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UpdateChecker.swift"; sourceTree = "<group>"; };
-		13161977E9C32ADDC42AA128 /* Assets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Assets.xcassets"; sourceTree = "<group>"; };
-		16B3DAF09479370879D5815D /* Pets */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Pets; sourceTree = "<group>"; };
+		AA7C971945DED02A659B8457 /* NSScreen+Notch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSScreen+Notch.swift"; sourceTree = "<group>"; };
+		4819D21BD2AF5ABEE715F4D4 /* TimeBlockTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TimeBlockTests.swift"; sourceTree = "<group>"; };
+		88F2F016E18485F26C8D309D /* StatisticsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StatisticsTests.swift"; sourceTree = "<group>"; };
+		8530A222DC06AB2B08E1BA76 /* UpdateCheckerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UpdateCheckerTests.swift"; sourceTree = "<group>"; };
+		CBC64AD9BF25CB5194995E7D /* UIThemeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIThemeTests.swift"; sourceTree = "<group>"; };
+		13161977E9C32ADDC42AA128 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Assets.xcassets"; sourceTree = "<group>"; };
+		DBCB0023FD38F8152310591A /* CHANGELOG.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "CHANGELOG.md"; sourceTree = SOURCE_ROOT; };
 		51FB5475FF8535F7775454AF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info.plist"; sourceTree = "<group>"; };
 		A734CCEF338A717792A212FE /* NotchBlock.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NotchBlock.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		7824BAA0AD63D7E15E5282D1 /* NotchBlockTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NotchBlockTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
+		E991C021ABBD2DA6DF032C23 = {
+			isa = PBXGroup;
+			children = (
+				0035FE99EA2940F7FA633A58 /* NotchBlock */,
+				023752C49C9D198427E934E7 /* Tests */,
+				DBCB0023FD38F8152310591A /* CHANGELOG.md */,
+				5BAB63C60BF318DAB40A4F04 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
 		0035FE99EA2940F7FA633A58 = {
 			isa = PBXGroup;
 			children = (
@@ -105,7 +122,6 @@
 				DEF204281AD8F8546926DA48 /* Views */,
 				68BEC4239B5D4BD9543A58BE /* Utilities */,
 				0DA65B7BC11ABE80827019A5 /* Resources */,
-				5BAB63C60BF318DAB40A4F04 /* Products */,
 			);
 			path = "NotchBlock";
 			sourceTree = "<group>";
@@ -115,10 +131,6 @@
 			children = (
 				B3BAC5908C53565931E8E5B3 /* TimeBlock.swift */,
 				DEE5F99D1E5A2B5F5EFC906B /* BlockStatus.swift */,
-				67B11FBB3FEBB64F15731054 /* PetState.swift */,
-				01235A2E4277A38B12739870 /* PetProtocol.swift */,
-				1AD65779FFA5C8725B2276D8 /* PetConfig.swift */,
-				4C8C750521149947986BE3BB /* PetPreferences.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -131,14 +143,11 @@
 				8029C4F7FC61995D8B4CE4D6 /* NotchPanelController.swift */,
 				F9BBB253B58E64373130DCA9 /* OverlayWindowController.swift */,
 				2A37D7EE1051E51ACF5FBDE8 /* OnboardingWindowController.swift */,
+				4150A378E6D4280C93FC7EA0 /* MainWindowController.swift */,
 				7350155EDA5DB8476A4BC699 /* BlockScheduler.swift */,
 				5BE6271F4A22EC4C768361D7 /* BreakScheduler.swift */,
 				B35A4B0B43F020AEC131D9B7 /* WeChatNotifier.swift */,
 				EC6C4D3F58E9E086C0F3C914 /* StatisticsStore.swift */,
-				A67C3A111729868D0914498E /* PetAnimationPlayer.swift */,
-				C7613A504A5A226B713760E4 /* PetInteractionHandler.swift */,
-				F81FE86748FDCAF58ADDD402 /* PetStateMachine.swift */,
-				7B7840826D81D13F9EB71904 /* PetWindowController.swift */,
 			);
 			path = Managers;
 			sourceTree = "<group>";
@@ -154,11 +163,12 @@
 				676DDB71144EFF5746229FD5 /* WeChatSettingsView.swift */,
 				23C69940C13A81DFC377476C /* StatisticsView.swift */,
 				57B16B687C8CFAC274EB6392 /* OnboardingView.swift */,
-				6A77824291F92C476EEF5429 /* TimelineView.swift */,
+				9B7395461E1A3A3E9CCF359F /* ScheduleTimelineView.swift */,
 				B9CA55ABDAA86A9B7E1A52D0 /* MenuBarIconView.swift */,
+				E416D47FF098154FCDC6FE2F /* MenuBarPopoverView.swift */,
+				6295B568A82554391D743C7E /* SettingsView.swift */,
 				A5AD1428373BE60BD92EAB93 /* WhatsNewView.swift */,
-				2AFBBFAFEE3D47C809D793D2 /* PetView.swift */,
-				08FD19282EA8C9A254C576B4 /* PetOnboardingView.swift */,
+				BA93DB6C2AD3954E1C742330 /* MinimalComponents.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -170,6 +180,7 @@
 				7B82270FE5C20AF2B1F0E39E /* LaunchManager.swift */,
 				B80F271916A3D0413AFC914A /* BrandColors.swift */,
 				8982475A346D406D89F74FEF /* UpdateChecker.swift */,
+				AA7C971945DED02A659B8457 /* NSScreen+Notch.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -178,15 +189,26 @@
 			isa = PBXGroup;
 			children = (
 				13161977E9C32ADDC42AA128 /* Assets */,
-				16B3DAF09479370879D5815D /* Pets */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		023752C49C9D198427E934E7 = {
+			isa = PBXGroup;
+			children = (
+				4819D21BD2AF5ABEE715F4D4 /* TimeBlockTests.swift */,
+				88F2F016E18485F26C8D309D /* StatisticsTests.swift */,
+				8530A222DC06AB2B08E1BA76 /* UpdateCheckerTests.swift */,
+				CBC64AD9BF25CB5194995E7D /* UIThemeTests.swift */,
+			);
+			path = Tests;
 			sourceTree = "<group>";
 		};
 		5BAB63C60BF318DAB40A4F04 = {
 			isa = PBXGroup;
 			children = (
 				A734CCEF338A717792A212FE /* NotchBlock.app */,
+				7824BAA0AD63D7E15E5282D1 /* NotchBlockTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -210,6 +232,22 @@
 			productReference = A734CCEF338A717792A212FE /* NotchBlock.app */;
 			productType = "com.apple.product-type.application";
 		};
+		4142ACB81F833AD11FC2A6C3 /* NotchBlockTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7F6DF525AB088E67CB116986 /* Build configuration list for PBXNativeTarget "NotchBlockTests" */;
+			buildPhases = (
+				04D65B8932DA7965D0307959 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E007CA51536B7DBAE48E73E6 /* PBXTargetDependency */,
+			);
+			name = NotchBlockTests;
+			productName = NotchBlockTests;
+			productReference = 7824BAA0AD63D7E15E5282D1 /* NotchBlockTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -223,6 +261,10 @@
 					9E440566B19C12EF065B2306 = {
 						CreatedOnToolsVersion = 16.4;
 					};
+					4142ACB81F833AD11FC2A6C3 = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = 9E440566B19C12EF065B2306;
+					};
 				};
 			};
 			buildConfigurationList = 4573FC33FC3A348A2692FE8A /* Build configuration list for PBXProject "NotchBlock" */;
@@ -234,15 +276,28 @@
 				Base,
 				"zh-Hans",
 			);
-			mainGroup = 0035FE99EA2940F7FA633A58;
+			mainGroup = E991C021ABBD2DA6DF032C23;
 			productRefGroup = 5BAB63C60BF318DAB40A4F04 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
 				9E440566B19C12EF065B2306 /* NotchBlock */,
+				4142ACB81F833AD11FC2A6C3 /* NotchBlockTests */,
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		5F36FA50E478023048969193 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5BFB3AC5498C548E2EAF1C43 /* Assets in Resources */,
+				D32A862EFF8C789C2815D085 /* CHANGELOG in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		328A40146B5C098A0186E817 /* Sources */ = {
@@ -252,23 +307,16 @@
 				8383FAF30DE4657E69E8D635 /* NotchBlockApp.swift in Sources */,
 				7C0D1BF2DBBB36B46ABE816B /* TimeBlock.swift in Sources */,
 				A24379B43F5B19475134E206 /* BlockStatus.swift in Sources */,
-				183191984B4A0EF1085D0F68 /* PetState.swift in Sources */,
-				1F9118CE356C02B525C849D4 /* PetProtocol.swift in Sources */,
-				A6E3EDD93D24CBB21C6ACE2C /* PetConfig.swift in Sources */,
-				FDBDD414C1E222B9A6DFA6E6 /* PetPreferences.swift in Sources */,
 				1827B5DFE545B020B2CC2A09 /* TimeBlockStore.swift in Sources */,
 				7644BA616FBCF421D1A1ECDC /* NotchTracker.swift in Sources */,
 				C9837466F3C579E56F3068BD /* NotchPanelController.swift in Sources */,
 				15F109F398E0B965595113EF /* OverlayWindowController.swift in Sources */,
 				8F039BF1E6CDEF905A17E946 /* OnboardingWindowController.swift in Sources */,
+				817C295158544461A3499A6A /* MainWindowController.swift in Sources */,
 				B3D75FCDC0095A4D0260E1C8 /* BlockScheduler.swift in Sources */,
 				33DBB9FF474E706498793066 /* BreakScheduler.swift in Sources */,
 				3981874C54C3C832728AC378 /* WeChatNotifier.swift in Sources */,
 				91E1F3E9E728C323D4327D3C /* StatisticsStore.swift in Sources */,
-				9A1D99052C9FF1322BC7542D /* PetAnimationPlayer.swift in Sources */,
-				6CD585A1F51DC055D6863C98 /* PetInteractionHandler.swift in Sources */,
-				9F3DBB8094BEB47183CBBE91 /* PetStateMachine.swift in Sources */,
-				942B4CC3228A063BE183F3D9 /* PetWindowController.swift in Sources */,
 				7748E12741CC0ECAA0A64779 /* MainSchedulerView.swift in Sources */,
 				AE8F5429523A9CC02671E038 /* TimeBlockRowView.swift in Sources */,
 				C889242EF1C522AB7E3C9BFE /* AddEditBlockView.swift in Sources */,
@@ -277,31 +325,40 @@
 				F31594D6B0E467B646BEEA07 /* WeChatSettingsView.swift in Sources */,
 				8D8CEB546F27BF9553BF48E5 /* StatisticsView.swift in Sources */,
 				E472A7F85EF4D285EEA54200 /* OnboardingView.swift in Sources */,
-				C5E1DCDDEB25DDFE84323E79 /* TimelineView.swift in Sources */,
+				1B4BFC1251BE6256866D8A97 /* ScheduleTimelineView.swift in Sources */,
 				AB34DE7CE2356C1A59388CC1 /* MenuBarIconView.swift in Sources */,
+				C45F5B61F9F8283299020E36 /* MenuBarPopoverView.swift in Sources */,
+				A12702A72B1F851F82340ABD /* SettingsView.swift in Sources */,
 				62CDCD01EB26F5EC1F6A75CE /* WhatsNewView.swift in Sources */,
-				6BFF1CF06373F721C8E10D39 /* PetView.swift in Sources */,
-				FAB1A67508F9C6BE00467749 /* PetOnboardingView.swift in Sources */,
+				771836FC608165DCA6A514DE /* MinimalComponents.swift in Sources */,
 				05E3945FA3BCF89E04CCA183 /* DateExtensions.swift in Sources */,
 				6C2129AFAFFF8B7254C90DEB /* LaunchManager.swift in Sources */,
 				98B76300C2224051A9F49F6D /* BrandColors.swift in Sources */,
 				4109E555E82094FFE4A0CCC6 /* UpdateChecker.swift in Sources */,
+				27B45503D8FCAC1837FF064E /* NSScreen+Notch.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		04D65B8932DA7965D0307959 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				11F53A457E5F550DC1C6EE0F /* TimeBlockTests.swift in Sources */,
+				11E4B81A3C0C6D51DCA96EC1 /* StatisticsTests.swift in Sources */,
+				BC7F825FCE5D18A7CBEF3603 /* UpdateCheckerTests.swift in Sources */,
+				6980D8B12C1F1CD1958A9414 /* UIThemeTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
-/* Begin PBXResourcesBuildPhase section */
-		5F36FA50E478023048969193 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				5BFB3AC5498C548E2EAF1C43 /* Assets in Resources */,
-				1C12EBC63ACE70537B82AFB8 /* Pets in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
+/* Begin PBXTargetDependency section */
+		E007CA51536B7DBAE48E73E6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9E440566B19C12EF065B2306 /* NotchBlock */;
+			targetProxy = 9DCD3E47D9D8D8963CA3F63B /* PBXContainerItemProxy */;
 		};
-/* End PBXResourcesBuildPhase section */
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		517EF81E56C19545A32A2153 /* Debug */ = {
@@ -324,6 +381,7 @@
 				);
 				MTL_ENABLE_DEBUG_INFO = "INCLUDE_SOURCE";
 				ONLY_ACTIVE_ARCH = "YES";
+				SDKROOT = "macosx";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -343,6 +401,7 @@
 				ENABLE_STRICT_OBJC_MSGSEND = "YES";
 				GCC_OPTIMIZATION_LEVEL = "s";
 				MTL_ENABLE_DEBUG_INFO = "NO";
+				SDKROOT = "macosx";
 				SWIFT_COMPILATION_MODE = "wholemodule";
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 			};
@@ -362,11 +421,11 @@
 					"@executable_path/../Frameworks"
 				);
 				MACOSX_DEPLOYMENT_TARGET = "14.0";
-				MARKETING_VERSION = "1.0";
+				MARKETING_VERSION = "0.7.0";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.notchblock.app";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = "YES";
-				SWIFT_VERSION = "5.0";
+				SWIFT_VERSION = "6.0";
 			};
 			name = Debug;
 		};
@@ -384,11 +443,49 @@
 					"@executable_path/../Frameworks"
 				);
 				MACOSX_DEPLOYMENT_TARGET = "14.0";
-				MARKETING_VERSION = "1.0";
+				MARKETING_VERSION = "0.7.0";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.notchblock.app";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = "YES";
-				SWIFT_VERSION = "5.0";
+				SWIFT_VERSION = "6.0";
+			};
+			name = Release;
+		};
+		8BD91F1A98D9FCFD6E520570 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = "Automatic";
+				GENERATE_INFOPLIST_FILE = "YES";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks"
+				);
+				MACOSX_DEPLOYMENT_TARGET = "14.0";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.notchblock.app.tests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = "6.0";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NotchBlock.app/Contents/MacOS/NotchBlock";
+			};
+			name = Debug;
+		};
+		F38170132D82EFC431FC7B00 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = "Automatic";
+				GENERATE_INFOPLIST_FILE = "YES";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks"
+				);
+				MACOSX_DEPLOYMENT_TARGET = "14.0";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.notchblock.app.tests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = "6.0";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NotchBlock.app/Contents/MacOS/NotchBlock";
 			};
 			name = Release;
 		};
@@ -409,6 +506,15 @@
 			buildConfigurations = (
 				4C01C33E3CB41557980CDFEC /* Debug */,
 				93AC3E79582D8D62B1379770 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7F6DF525AB088E67CB116986 /* Build configuration list for PBXNativeTarget "NotchBlockTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8BD91F1A98D9FCFD6E520570 /* Debug */,
+				F38170132D82EFC431FC7B00 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

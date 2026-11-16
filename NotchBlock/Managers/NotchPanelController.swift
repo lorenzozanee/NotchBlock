@@ -1,31 +1,32 @@
 import Cocoa
+import Observation
 import SwiftUI
 
-/// Manages the floating dropdown panel that appears below the notch (V2).
-///
-/// Changes from V1:
-/// - Dynamic panel height via `fittingSize` (no longer hardcoded 180px)
-/// - Slower leave-debounce (0.5s instead of 0.3s) for gentler dismissal
-/// - Timer lifecycle managed by NotchPanelView (onAppear/onDisappear)
-/// - Accepts `onOpenMainWindow` callback for routing taps to main scheduler
+/// Manages the floating dropdown panel anchored below the notched display's menu bar.
+@MainActor
 final class NotchPanelController {
+    @Observable
+    @MainActor
+    final class PresentationState {
+        var isVisible = false
+
+        init(isVisible: Bool = false) {
+            self.isVisible = isVisible
+        }
+    }
+
     private var panel: NSPanel?
+    private var hostingView: NSHostingView<NotchPanelView>?
     private weak var tracker: NotchTracker?
     private let store: TimeBlockStore
+    private let presentation = PresentationState()
     private var hideGeneration = 0
 
-    /// Called when user taps a task or quick-add — opens the main scheduler window.
     var onOpenMainWindow: (() -> Void)?
 
-    // MARK: - Auto-dismiss (for pet-triggered shows)
-
-    private var autoDismissTimer: Timer?
-    private var clickOutsideMonitor: Any?
-    private var isAutoDismissEnabled = false
-
     private static let panelWidth: CGFloat = 320
-    private static let animationDuration: TimeInterval = 0.25
-    private static let autoDismissTimeout: TimeInterval = 5.0
+    private static let showDuration: TimeInterval = 0.35
+    private static let hideDuration: TimeInterval = 0.25
 
     init(store: TimeBlockStore) {
         self.store = store
@@ -40,87 +41,41 @@ final class NotchPanelController {
     // MARK: - Show / Hide
 
     func show() {
-        hideGeneration += 1  // cancel any in-flight hide completion
+        hideGeneration += 1
+        presentation.isVisible = true
         if panel == nil { createPanel() }
         guard let panel else { return }
 
-        resizePanelToFitContent()
-        updatePanelPosition()
+        layoutAndPositionPanel()
+        if panel.isVisible && panel.alphaValue > 0.99 {
+            return
+        }
+
         panel.alphaValue = 0
         panel.orderFront(nil)
 
         NSAnimationContext.runAnimationGroup { ctx in
-            ctx.duration = 0.4
+            ctx.duration = Self.showDuration
             ctx.timingFunction = CAMediaTimingFunction(controlPoints: 0.1, 0.9, 0.2, 1.0)
             panel.animator().alphaValue = 1.0
         }
     }
 
     func hide() {
-        guard let panel else { return }
+        guard let panel, presentation.isVisible else { return }
+        presentation.isVisible = false
+        tracker?.notifyPanelDismissed()
         let gen = hideGeneration
         NSAnimationContext.runAnimationGroup({ ctx in
-            ctx.duration = Self.animationDuration + 0.15
+            ctx.duration = Self.hideDuration
             ctx.timingFunction = CAMediaTimingFunction(name: .easeIn)
             panel.animator().alphaValue = 0
         }, completionHandler: { [weak self] in
-            guard let self, self.hideGeneration == gen else { return }
-            self.panel?.orderOut(nil)
-            self.teardownAutoDismiss()
+            Task { @MainActor [weak self] in
+                guard let self, self.hideGeneration == gen else { return }
+                self.panel?.orderOut(nil)
+            }
         })
-    }
-
-    // MARK: - Auto-Dismiss (Pet-Triggered)
-
-    /// Show the panel with a 5-second auto-dismiss timer and
-    /// click-outside-to-dismiss via global event monitor.
-    /// Used when the pet triggers the panel (no NotchTracker hover).
-    func showWithAutoDismiss() {
-        show()
-        setupAutoDismiss()
-    }
-
-    private func setupAutoDismiss() {
-        teardownAutoDismiss()
-        isAutoDismissEnabled = true
-
-        // 5-second auto-dismiss timer
-        autoDismissTimer = Timer.scheduledTimer(
-            withTimeInterval: Self.autoDismissTimeout,
-            repeats: false
-        ) { [weak self] _ in
-            DispatchQueue.main.async {
-                self?.hide()
-            }
-        }
-
-        // Click-outside-to-dismiss via global event monitor
-        clickOutsideMonitor = NSEvent.addGlobalMonitorForEvents(
-            matching: [.leftMouseDown, .rightMouseDown]
-        ) { [weak self] _ in
-            guard let self,
-                  let panel = self.panel,
-                  self.isAutoDismissEnabled,
-                  panel.isVisible
-            else { return }
-
-            let clickLocation = NSEvent.mouseLocation
-            if !panel.frame.contains(clickLocation) {
-                DispatchQueue.main.async {
-                    self.hide()
-                }
-            }
-        }
-    }
-
-    private func teardownAutoDismiss() {
-        isAutoDismissEnabled = false
-        autoDismissTimer?.invalidate()
-        autoDismissTimer = nil
-        if let monitor = clickOutsideMonitor {
-            NSEvent.removeMonitor(monitor)
-            clickOutsideMonitor = nil
-        }
     }
 
     // MARK: - Panel Setup
@@ -134,29 +89,31 @@ final class NotchPanelController {
         )
         window.isOpaque = false
         window.backgroundColor = .clear
-        window.hasShadow = false
+        window.hasShadow = true
         window.level = .floating
         window.collectionBehavior = [.canJoinAllSpaces, .transient, .ignoresCycle]
         window.isMovable = false
         window.isReleasedWhenClosed = false
+        window.hidesOnDeactivate = false
         window.animationBehavior = .none
 
         let trackingView = PanelTrackingView()
         trackingView.onMouseEntered = { [weak self] in self?.tracker?.setMouseInPanel(true) }
         trackingView.onMouseExited = { [weak self] in self?.tracker?.setMouseInPanel(false) }
 
-        let panelView = NotchPanelView(store: store) { [weak self] in
+        let panelView = NotchPanelView(store: store, presentation: presentation) { [weak self] in
+            self?.hide()
             self?.onOpenMainWindow?()
         }
 
-        let hostingView = NSHostingView(rootView: panelView)
-        hostingView.translatesAutoresizingMaskIntoConstraints = false
-        trackingView.addSubview(hostingView)
+        let hosting = NSHostingView(rootView: panelView)
+        hosting.translatesAutoresizingMaskIntoConstraints = false
+        trackingView.addSubview(hosting)
         NSLayoutConstraint.activate([
-            hostingView.topAnchor.constraint(equalTo: trackingView.topAnchor),
-            hostingView.bottomAnchor.constraint(equalTo: trackingView.bottomAnchor),
-            hostingView.leadingAnchor.constraint(equalTo: trackingView.leadingAnchor),
-            hostingView.trailingAnchor.constraint(equalTo: trackingView.trailingAnchor),
+            hosting.topAnchor.constraint(equalTo: trackingView.topAnchor),
+            hosting.bottomAnchor.constraint(equalTo: trackingView.bottomAnchor),
+            hosting.leadingAnchor.constraint(equalTo: trackingView.leadingAnchor),
+            hosting.trailingAnchor.constraint(equalTo: trackingView.trailingAnchor),
         ])
 
         let trackingArea = NSTrackingArea(
@@ -168,33 +125,22 @@ final class NotchPanelController {
         trackingView.addTrackingArea(trackingArea)
 
         window.contentView = trackingView
-        panel = window
+        self.hostingView = hosting
+        self.panel = window
     }
 
-    private func updatePanelPosition() {
-        guard let screen = NSScreen.main, let panel else { return }
-        let sf = screen.frame
-        let px = sf.origin.x + (sf.width - Self.panelWidth) / 2
-        let py = sf.origin.y + sf.height - 36 - panel.frame.height
-        panel.setFrame(NSRect(x: px, y: py, width: Self.panelWidth, height: panel.frame.height), display: true)
-    }
-
-    /// Resizes the NSPanel to fit the SwiftUI content's intrinsic size.
-    private func resizePanelToFitContent() {
+    private func layoutAndPositionPanel() {
         guard let panel,
-              let hostingView = panel.contentView?.subviews.first(where: { $0 is NSHostingView<NotchPanelView> })
+              let hostingView,
+              let screen = NSScreen.notched ?? NSScreen.main
         else { return }
 
         hostingView.layoutSubtreeIfNeeded()
-        let fittingSize = hostingView.fittingSize
-        guard fittingSize.height > 0 else { return }
-
-        let newHeight = fittingSize.height
-        guard let screen = NSScreen.main else { return }
+        let fittingHeight = max(hostingView.fittingSize.height, 120)
         let sf = screen.frame
         let px = sf.origin.x + (sf.width - Self.panelWidth) / 2
-        let py = sf.origin.y + sf.height - 36 - newHeight
-        panel.setFrame(NSRect(x: px, y: py, width: Self.panelWidth, height: newHeight), display: true, animate: false)
+        let py = sf.maxY - screen.topMenuBarHeight - fittingHeight
+        panel.setFrame(NSRect(x: px, y: py, width: Self.panelWidth, height: fittingHeight), display: true, animate: false)
     }
 }
 

@@ -1,214 +1,238 @@
-import Cocoa
-import Combine
+import AppKit
+import CoreGraphics
 
-/// Detects mouse hover at the MacBook notch via global cursor polling.
+/// Detects mouse hover at the MacBook hardware notch via 10 Hz cursor polling.
 ///
-/// NSTrackingArea at the menu bar / notch region is fundamentally broken on macOS 14+:
-/// the Window Server permanently intercepts mouse events in the top ~37px regardless
-/// of NSWindow level. Instead, we poll `NSEvent.mouseLocation` at 10 Hz — this reads
-/// cursor position directly from the Window Server shared memory, bypassing the event
-/// delivery pipeline entirely.
-///
-/// Trigger zone: top 5 px of the screen, 180 px wide centered at the notch position.
-/// When the mouse stays in this zone for >= 0.5 s, the panel trigger callback fires.
-/// When the mouse leaves both the zone and the panel for > 0.5 s, the dismiss fires.
-/// Disables tracking when a fullscreen app is active (AC 2.4).
+/// `NSTrackingArea` in the menu bar / notch region (~37px top edge) is intercepted
+/// by the Window Server on macOS 14+. Polling `NSEvent.mouseLocation` reads cursor
+/// coordinates directly, bypassing event delivery.
+@MainActor
 final class NotchTracker {
-    /// Whether the notch panel should be visible (set internally, read by callbacks).
     var isPanelVisible = false
 
-    /// Called when the hover debounce completes — panel should show
     var onTrigger: (() -> Void)?
-    /// Called when the mouse leaves the panel area — panel should hide
     var onDismiss: (() -> Void)?
 
     // MARK: - Constants
 
-    /// Width of the trigger zone at the top of the screen (same as notch width).
     private static let notchWidth: CGFloat = 180
-    /// Height of the trigger zone at the very top edge of the screen.
-    /// Narrow enough to require deliberate cursor push; 10 Hz polling gives
-    /// ~5 consecutive in-zone readings within 500 ms debounce.
     private static let triggerZoneHeight: CGFloat = 5
-    private static let hoverDebounce: TimeInterval = 0.0
-    private static let leaveDebounce: TimeInterval = 0.5
-    private static let pollInterval: TimeInterval = 0.1
+    private static let hoverDebounce: Duration = .zero
+    private static let leaveDebounce: Duration = .milliseconds(500)
+    private static let pollInterval: Duration = .milliseconds(100)
+    private static let fullscreenPollInterval: Duration = .seconds(2)
 
     // MARK: - State
 
-    private var pollTimer: Timer?
-    private var hoverTimer: Timer?
-    private var leaveTimer: Timer?
     private var mouseInTriggerZone = false
     private var mouseInPanel = false
     private var isFullscreenActive = false
 
-    /// Computed: true when the main scheduler window is visible.
-    /// Uses NSApp.windows — fast, no CGWindowList overhead.
-    /// SwiftUI Window(id:"main") sets the identifier on the backing NSWindow.
+    nonisolated(unsafe) private var pollTask: Task<Void, Never>?
+    nonisolated(unsafe) private var hoverTask: Task<Void, Never>?
+    nonisolated(unsafe) private var leaveTask: Task<Void, Never>?
+    nonisolated(unsafe) private var fullscreenTask: Task<Void, Never>?
+    nonisolated(unsafe) private var spaceObserverTask: Task<Void, Never>?
+
     var isMainWindowOpen: Bool {
         NSApp.windows.contains { $0.isVisible && $0.identifier?.rawValue == "main" }
     }
 
-    /// Debug: exposes internal state for testing.
     var debugDescription: String {
-        "NotchTracker(polling: \(pollTimer != nil), fullscreen: \(isFullscreenActive), mainWin: \(isMainWindowOpen), inZone: \(mouseInTriggerZone), inPanel: \(mouseInPanel), panel: \(isPanelVisible))"
+        "NotchTracker(polling: \(pollTask != nil), fullscreen: \(isFullscreenActive), mainWin: \(isMainWindowOpen), inZone: \(mouseInTriggerZone), inPanel: \(mouseInPanel), panel: \(isPanelVisible))"
     }
-
-    private var cancellables = Set<AnyCancellable>()
-    private var fullscreenCheckTimer: Timer?
 
     // MARK: - Lifecycle
 
-    init() {
-        setupFullscreenDetection()
+    deinit {
+        pollTask?.cancel()
+        hoverTask?.cancel()
+        leaveTask?.cancel()
+        fullscreenTask?.cancel()
+        spaceObserverTask?.cancel()
     }
 
-    deinit { teardown() }
-
     func start() {
-        guard pollTimer == nil else { return }
-        // Defer timer scheduling until the run loop is active.
-        // Timer.scheduledTimer in init() runs before NSApplication.run(),
-        // so the timer is added to a run loop that isn't processing yet.
-        // Defer timer scheduling — Timer.scheduledTimer in init() adds to a
-        // run loop that hasn't started processing yet.
-        DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(500)) { [weak self] in
-            guard let self else { return }
-            self.pollTimer = Timer.scheduledTimer(withTimeInterval: Self.pollInterval, repeats: true) { [weak self] _ in
+        guard pollTask == nil else { return }
+
+        pollTask = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(500))
+            while !Task.isCancelled {
                 self?.pollMousePosition()
+                try? await Task.sleep(for: Self.pollInterval)
             }
-            self.pollTimer?.tolerance = 0.02
         }
-        startFullscreenPolling()
+
+        spaceObserverTask = Task { [weak self] in
+            for await _ in Self.spaceChangeNotifications() {
+                guard !Task.isCancelled else { break }
+                await self?.refreshFullscreenState()
+            }
+        }
+
+        fullscreenTask = Task { [weak self] in
+            while !Task.isCancelled {
+                await self?.refreshFullscreenState()
+                try? await Task.sleep(for: Self.fullscreenPollInterval)
+            }
+        }
     }
 
     func teardown() {
-        pollTimer?.invalidate()
-        pollTimer = nil
-        hoverTimer?.invalidate()
-        leaveTimer?.invalidate()
-        fullscreenCheckTimer?.invalidate()
-        cancellables.removeAll()
+        pollTask?.cancel()
+        pollTask = nil
+        hoverTask?.cancel()
+        hoverTask = nil
+        leaveTask?.cancel()
+        leaveTask = nil
+        fullscreenTask?.cancel()
+        fullscreenTask = nil
+        spaceObserverTask?.cancel()
+        spaceObserverTask = nil
+    }
+
+    func setMouseInPanel(_ inPanel: Bool) {
+        mouseInPanel = inPanel
+        if inPanel {
+            leaveTask?.cancel()
+            leaveTask = nil
+        } else if !mouseInTriggerZone, isPanelVisible {
+            scheduleLeaveDebounce()
+        }
+    }
+
+    func dismissIfVisible() {
+        hoverTask?.cancel()
+        hoverTask = nil
+        leaveTask?.cancel()
+        leaveTask = nil
+        mouseInTriggerZone = false
+        mouseInPanel = false
+        guard isPanelVisible else { return }
+        isPanelVisible = false
+        onDismiss?()
+    }
+
+    func notifyPanelDismissed() {
+        isPanelVisible = false
+        mouseInTriggerZone = false
+        mouseInPanel = false
+        hoverTask?.cancel()
+        hoverTask = nil
+        leaveTask?.cancel()
+        leaveTask = nil
     }
 
     // MARK: - Mouse Position Polling
 
     private func pollMousePosition() {
-        guard !isFullscreenActive, !isMainWindowOpen else { return }
+        if isFullscreenActive || isMainWindowOpen {
+            if isPanelVisible {
+                dismissIfVisible()
+            }
+            return
+        }
 
-        guard let screen = findNotchScreen() else { return }
-        let mouse = NSEvent.mouseLocation  // Cocoa screen coords (origin bottom-left)
-        let inZone = isMouseInTriggerZone(mouse, screen: screen)
+        guard let screen = NSScreen.notched else {
+            if isPanelVisible {
+                dismissIfVisible()
+            }
+            return
+        }
+        let inZone = isMouseInTriggerZone(NSEvent.mouseLocation, screen: screen)
 
         if inZone && !mouseInTriggerZone {
-            // Mouse entered trigger zone
             mouseInTriggerZone = true
-            leaveTimer?.invalidate()
-            leaveTimer = nil
+            leaveTask?.cancel()
+            leaveTask = nil
             scheduleHoverDebounce()
         } else if !inZone && mouseInTriggerZone {
-            // Mouse left trigger zone
             mouseInTriggerZone = false
-            hoverTimer?.invalidate()
-            hoverTimer = nil
+            hoverTask?.cancel()
+            hoverTask = nil
             if isPanelVisible, !mouseInPanel {
                 scheduleLeaveDebounce()
             }
         }
     }
 
-    /// Returns the screen that has a notch, or nil on notch-less Macs / external displays.
-    private func findNotchScreen() -> NSScreen? {
-        NSScreen.screens.first { $0.safeAreaInsets.top > 0 }
-    }
-
-    /// Checks whether the given mouse position falls within the notch trigger zone.
-    ///
-    /// The zone spans the top `triggerZoneHeight` pixels of the screen, centered
-    /// horizontally over the notch position.
     private func isMouseInTriggerZone(_ mouse: NSPoint, screen: NSScreen) -> Bool {
         let sf = screen.frame
         let centerX = sf.origin.x + sf.width / 2
         let leftX = centerX - Self.notchWidth / 2
         let rightX = centerX + Self.notchWidth / 2
-        let topY = sf.origin.y + sf.height
+        let topY = sf.maxY
         let bottomY = topY - Self.triggerZoneHeight
 
         return mouse.x >= leftX && mouse.x <= rightX
             && mouse.y >= bottomY && mouse.y <= topY
     }
 
-    // MARK: - Debounce Timers
+    // MARK: - Debounce
 
     private func scheduleHoverDebounce() {
-        hoverTimer?.invalidate()
-        hoverTimer = Timer.scheduledTimer(withTimeInterval: Self.hoverDebounce, repeats: false) { [weak self] _ in
-            guard let self, self.mouseInTriggerZone, !self.isFullscreenActive else { return }
-            DispatchQueue.main.async {
-                self.isPanelVisible = true
-                self.onTrigger?()
+        hoverTask?.cancel()
+        hoverTask = Task { [weak self] in
+            if Self.hoverDebounce > .zero {
+                try? await Task.sleep(for: Self.hoverDebounce)
             }
-        }
-    }
-
-    /// Called by NotchPanelController when the mouse enters or exits the panel.
-    func setMouseInPanel(_ inPanel: Bool) {
-        mouseInPanel = inPanel
-        if !inPanel, !mouseInTriggerZone, isPanelVisible {
-            scheduleLeaveDebounce()
-        } else if inPanel {
-            leaveTimer?.invalidate()
-            leaveTimer = nil
+            guard !Task.isCancelled,
+                  let self,
+                  self.mouseInTriggerZone,
+                  !self.isFullscreenActive,
+                  !self.isMainWindowOpen
+            else { return }
+            self.isPanelVisible = true
+            self.onTrigger?()
         }
     }
 
     private func scheduleLeaveDebounce() {
-        leaveTimer?.invalidate()
-        leaveTimer = Timer.scheduledTimer(withTimeInterval: Self.leaveDebounce, repeats: false) { [weak self] _ in
-            guard let self else { return }
-            DispatchQueue.main.async {
-                guard !self.mouseInTriggerZone, !self.mouseInPanel else { return }
-                self.isPanelVisible = false
-                self.onDismiss?()
-            }
+        leaveTask?.cancel()
+        leaveTask = Task { [weak self] in
+            try? await Task.sleep(for: Self.leaveDebounce)
+            guard !Task.isCancelled,
+                  let self,
+                  !self.mouseInTriggerZone,
+                  !self.mouseInPanel
+            else { return }
+            self.isPanelVisible = false
+            self.onDismiss?()
         }
     }
 
-    // MARK: - Fullscreen Detection (AC 2.4)
+    // MARK: - Fullscreen Detection
 
-    private func setupFullscreenDetection() {
-        NSWorkspace.shared.notificationCenter
-            .publisher(for: NSWorkspace.activeSpaceDidChangeNotification)
-            .sink { [weak self] _ in self?.checkFullscreenState() }
-            .store(in: &cancellables)
-    }
+    private func refreshFullscreenState() async {
+        guard let quartzBounds = NSScreen.notched?.quartzBounds ?? NSScreen.main?.quartzBounds else { return }
+        let detected = await Task.detached(priority: .utility) {
+            Self.detectFullscreenActive(screenBounds: quartzBounds)
+        }.value
 
-    private func startFullscreenPolling() {
-        fullscreenCheckTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
-            self?.checkFullscreenState()
+        let wasFullscreen = isFullscreenActive
+        isFullscreenActive = detected
+        if detected, !wasFullscreen, isPanelVisible {
+            dismissIfVisible()
         }
     }
 
-    private func checkFullscreenState() {
-        guard let screen = NSScreen.main else { return }
-        let screenBounds = screen.frame
-
-        DispatchQueue.global(qos: .utility).async { [weak self] in
-            let newState = Self.detectFullscreenActive(screenBounds: screenBounds)
-            DispatchQueue.main.async {
-                guard let self else { return }
-                let wasFullscreen = self.isFullscreenActive
-                self.isFullscreenActive = newState
-                if newState, !wasFullscreen {
-                    self.isPanelVisible = false
-                    self.onDismiss?()
+    nonisolated private static func spaceChangeNotifications() -> AsyncStream<Void> {
+        AsyncStream { continuation in
+            let task = Task {
+                let notifications = NSWorkspace.shared.notificationCenter.notifications(
+                    named: NSWorkspace.activeSpaceDidChangeNotification
+                )
+                for await _ in notifications {
+                    continuation.yield()
                 }
+                continuation.finish()
             }
+            continuation.onTermination = { _ in task.cancel() }
         }
     }
 
-    static func detectFullscreenActive(screenBounds: CGRect) -> Bool {
+    /// Detects whether a standard window covers the screen in Quartz global coordinates.
+    nonisolated static func detectFullscreenActive(screenBounds: CGRect) -> Bool {
         let windowList = CGWindowListCopyWindowInfo(
             [.optionOnScreenOnly, .excludeDesktopElements],
             kCGNullWindowID

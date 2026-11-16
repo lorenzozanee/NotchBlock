@@ -1,124 +1,139 @@
 import SwiftUI
 
-/// Configuration view for WeChat notification integration (WxPusher / Enterprise WeChat Webhook).
-/// Tokens stored in macOS Keychain; enabled state + service type in UserDefaults.
+/// Configuration form for WeChat notification integration (WxPusher / Enterprise WeChat Webhook).
 struct WeChatSettingsView: View {
-    @ObservedObject var notifier: WeChatNotifier
-    @Environment(\.dismiss) private var dismiss
+    @Bindable var notifier: WeChatNotifier
 
     @State private var appToken = ""
     @State private var uid = ""
     @State private var webhookURL = ""
-    @State private var showSaved = false
+    @State private var statusMessage: String?
+    @State private var isStatusError = false
+    @State private var isTesting = false
 
     var body: some View {
-        VStack(spacing: 0) {
-            headerBar
-            Divider()
-            formContent
-            Divider()
-            footerBar
-        }
-        .frame(width: 420)
-        .onAppear { loadExisting() }
-    }
+        Form {
+            Section {
+                Toggle("启用微信通知", isOn: Binding(
+                    get: { notifier.isEnabled },
+                    set: { notifier.setEnabled($0) }
+                ))
 
-    private var headerBar: some View {
-        HStack {
-            Text("微信通知设置").font(.headline)
-            Spacer()
-        }.padding(.horizontal, 20).padding(.vertical, 14)
-    }
-
-    private var formContent: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Toggle(isOn: Binding(
-                get: { notifier.isEnabled },
-                set: { notifier.setEnabled($0) }
-            )) { Text("启用微信通知").fontWeight(.medium) }
-
-            Divider()
-
-            Picker("推送服务", selection: $notifier.serviceType) {
-                ForEach(WeChatNotifier.ServiceType.allCases, id: \.self) { t in
-                    Text(t.rawValue).tag(t)
-                }
-            }
-            .pickerStyle(.radioGroup)
-            .onChange(of: notifier.serviceType) { _, _ in
-                UserDefaults.standard.set(notifier.serviceType.rawValue, forKey: "wechatNotifier.serviceType")
-            }
-
-            Divider()
-
-            if notifier.serviceType == .wxpusher {
-                VStack(alignment: .leading, spacing: 10) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("AppToken").font(.caption).foregroundStyle(.secondary)
-                        SecureField("AT_xxx", text: $appToken).textFieldStyle(.roundedBorder)
-                    }
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("UID").font(.caption).foregroundStyle(.secondary)
-                        TextField("UID_xxx", text: $uid).textFieldStyle(.roundedBorder)
-                    }
-                }
-            } else {
-                VStack(alignment: .leading, spacing: 10) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Webhook URL").font(.caption).foregroundStyle(.secondary)
-                        TextField("https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=...", text: $webhookURL)
-                            .textFieldStyle(.roundedBorder)
+                Picker("推送服务", selection: Binding(
+                    get: { notifier.serviceType },
+                    set: { notifier.setServiceType($0) }
+                )) {
+                    ForEach(WeChatNotifier.ServiceType.allCases, id: \.self) { service in
+                        Text(service.rawValue).tag(service)
                     }
                 }
             }
 
-            helpSection
-        }.padding(20)
-    }
+            Section("凭证配置") {
+                if notifier.serviceType == .wxpusher {
+                    SecureField("AppToken (AT_xxx)", text: $appToken)
+                    TextField("UID (UID_xxx)", text: $uid)
+                } else {
+                    TextField("Webhook URL (https://...)", text: $webhookURL)
+                }
 
-    private var helpSection: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("如何获取?").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-            if notifier.serviceType == .wxpusher {
-                Text("1. 访问 wxpusher.zjiecode.com\n2. 扫码创建应用 → 获取 AppToken\n3. 扫描关注二维码 → 获取 UID")
-                    .font(.caption).foregroundStyle(.tertiary)
-            } else {
-                Text("1. 注册企业微信 → 创建群聊\n2. 添加群机器人 → 复制 Webhook URL")
-                    .font(.caption).foregroundStyle(.tertiary)
+                HStack {
+                    Button("发送测试") {
+                        Task { await sendTest() }
+                    }
+                    .buttonStyle(MinimalSecondaryButtonStyle(horizontalPadding: 12, verticalPadding: 5))
+                    .disabled(!isInputValid || isTesting)
+
+                    Spacer()
+
+                    if let statusMessage {
+                        Text(statusMessage)
+                            .font(.caption)
+                            .foregroundStyle(isStatusError ? BrandColors.missed : BrandColors.accentText)
+                    }
+
+                    Button("保存凭证") {
+                        save()
+                    }
+                    .buttonStyle(MinimalPrimaryButtonStyle(horizontalPadding: 12, verticalPadding: 5))
+                    .disabled(!isInputValid)
+                }
+            }
+
+            Section("获取指引") {
+                if notifier.serviceType == .wxpusher {
+                    Text("1. 访问 wxpusher.zjiecode.com 创建应用获取 AppToken\n2. 扫描关注二维码获取个人 UID")
+                        .font(.caption)
+                        .foregroundStyle(BrandColors.textSecondary)
+                } else {
+                    Text("在企业微信群聊中添加群机器人，复制 HTTPS Webhook 地址。")
+                        .font(.caption)
+                        .foregroundStyle(BrandColors.textSecondary)
+                }
             }
         }
-        .padding(12).background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
+        .formStyle(.grouped)
+        .scrollContentBackground(.hidden)
+        .onAppear(perform: loadExisting)
+        .task(id: statusMessage) {
+            guard statusMessage != nil else { return }
+            try? await Task.sleep(for: .seconds(2.5))
+            guard !Task.isCancelled else { return }
+            statusMessage = nil
+        }
     }
 
-    private var footerBar: some View {
-        HStack {
-            if showSaved { Text("✅ 已保存").font(.caption).foregroundStyle(.green) }
-            Spacer()
-            Button("取消") { dismiss() }
-            Button("保存") { save() }.buttonStyle(.borderedProminent)
-        }.padding(.horizontal, 20).padding(.vertical, 12)
+    private var isInputValid: Bool {
+        switch notifier.serviceType {
+        case .wxpusher:
+            return !appToken.trimmingCharacters(in: .whitespaces).isEmpty
+                && !uid.trimmingCharacters(in: .whitespaces).isEmpty
+        case .wecomWebhook:
+            let trimmed = webhookURL.trimmingCharacters(in: .whitespaces)
+            return trimmed.hasPrefix("https://") && URL(string: trimmed) != nil
+        }
     }
 
     private func loadExisting() {
-        appToken = notifier.loadKeychain(key: "com.notchblock.wxpusher.appToken") ?? ""
-        uid = notifier.loadKeychain(key: "com.notchblock.wxpusher.uid") ?? ""
-        webhookURL = notifier.loadKeychain(key: "com.notchblock.wecom.webhook") ?? ""
+        appToken = notifier.loadKeychain(key: WeChatNotifier.KeychainKey.wxpusherToken) ?? ""
+        uid = notifier.loadKeychain(key: WeChatNotifier.KeychainKey.wxpusherUID) ?? ""
+        webhookURL = notifier.loadKeychain(key: WeChatNotifier.KeychainKey.wecomWebhook) ?? ""
     }
 
     private func save() {
         switch notifier.serviceType {
         case .wxpusher:
-            guard !appToken.isEmpty, !uid.isEmpty else { return }
-            notifier.saveWxPusherConfig(appToken: appToken, uid: uid)
+            notifier.saveWxPusherConfig(
+                appToken: appToken.trimmingCharacters(in: .whitespaces),
+                uid: uid.trimmingCharacters(in: .whitespaces)
+            )
         case .wecomWebhook:
-            guard !webhookURL.isEmpty else { return }
-            notifier.saveWeComWebhook(url: webhookURL)
+            notifier.saveWeComWebhook(url: webhookURL.trimmingCharacters(in: .whitespaces))
         }
-        showSaved = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { showSaved = false }
+        showFeedback("已保存到钥匙串", isError: false)
+    }
+
+    private func sendTest() async {
+        save()
+        isTesting = true
+        defer { isTesting = false }
+        do {
+            try await notifier.sendTestNotification()
+            showFeedback("测试消息已发送", isError: false)
+        } catch {
+            showFeedback(error.localizedDescription, isError: true)
+        }
+    }
+
+    private func showFeedback(_ message: String, isError: Bool) {
+        statusMessage = message
+        isStatusError = isError
     }
 }
 
 #if DEBUG
-#Preview { WeChatSettingsView(notifier: WeChatNotifier()) }
+#Preview {
+    WeChatSettingsView(notifier: WeChatNotifier())
+        .frame(width: 440, height: 360)
+}
 #endif

@@ -1,62 +1,97 @@
 import SwiftUI
-import AppKit
 
 struct MainSchedulerView: View {
-    @ObservedObject var store: TimeBlockStore
+    let store: TimeBlockStore
+    let scheduler: BlockScheduler
     var stats: StatisticsStore?
+    var updateChecker: UpdateChecker?
+
     @State private var showAddSheet = false
     @State private var editingBlock: TimeBlock?
-    @State private var activeBlock: TimeBlock?
-    @State private var now = Date()
     @State private var showStats = false
     @State private var viewMode: ViewMode = .list
-    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    @State private var showWhatsNew = false
+    @State private var whatsNewVersion = ""
+    @State private var whatsNewChangelog = ""
 
-    enum ViewMode: String, CaseIterable {
+    enum ViewMode: String, CaseIterable, Hashable {
         case list = "列表"
         case timeline = "时间轴"
     }
 
-    /// Timer fires every 1s to keep countdown and active-block detection live
-    private let tickTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+    private var todayBlocks: [TimeBlock] {
+        store.todayBlocks()
+    }
 
     var body: some View {
         VStack(spacing: 0) {
             headerBar
-            Divider()
-            if todayBlocks.isEmpty {
-                emptyState
-            } else if viewMode == .timeline {
-                TimelineView(
-                    blocks: todayBlocks,
-                    activeBlockID: activeBlock?.id,
-                    onTap: { editingBlock = $0 }
-                )
-            } else {
-                blockList
-            }
-            Divider()
-            statusBar
-        }
-        .frame(minWidth: 440, idealWidth: 480, minHeight: 380, idealHeight: 520)
-        .tint(BrandColors.accent)
-        .background(.windowBackground)
-        .overlay(alignment: .bottomTrailing) {
-            if !todayBlocks.isEmpty {
-                Button { showAddSheet = true } label: {
-                    Image(systemName: "plus")
-                        .font(.title2.weight(.semibold))
-                        .frame(width: 44, height: 44)
+            MinimalHairline()
+
+            Group {
+                if todayBlocks.isEmpty {
+                    emptyState
+                } else if viewMode == .timeline {
+                    ScheduleTimelineView(
+                        blocks: todayBlocks,
+                        activeBlockID: scheduler.activeBlockID,
+                        onTap: { block in
+                            if !block.isBreak {
+                                editingBlock = block
+                            }
+                        }
+                    )
+                } else {
+                    blockList
                 }
-                .buttonStyle(.plain)
-                .background(.ultraThinMaterial, in: Circle())
-                .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
-                .padding(20)
-                .transition(.scale.combined(with: .opacity))
+            }
+            .overlay(alignment: .bottomTrailing) {
+                if !todayBlocks.isEmpty {
+                    Button {
+                        showAddSheet = true
+                    } label: {
+                        Image(systemName: "plus")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundStyle(BrandColors.accentOnFill)
+                            .frame(width: 42, height: 42)
+                            .background {
+                                ZStack {
+                                    VisualEffectBackdrop(material: .popover, blendingMode: .withinWindow)
+                                    BrandColors.accentFill
+                                }
+                                .clipShape(Circle())
+                            }
+                            .overlay(Circle().strokeBorder(BrandColors.accentBorder, lineWidth: 1))
+                            .contentShape(Circle())
+                    }
+                    .buttonStyle(.plain)
+                    .keyboardShortcut("n", modifiers: .command)
+                    .shadow(color: .black.opacity(0.22), radius: 12, y: 4)
+                    .padding(18)
+                    .accessibilityLabel("新建任务")
+                    .transition(.scale.combined(with: .opacity))
+                }
+            }
+
+            MinimalHairline()
+            SchedulerStatusBar(store: store, scheduler: scheduler, stats: stats)
+        }
+        .frame(minWidth: 460, idealWidth: 520, minHeight: 420, idealHeight: 560)
+        .background {
+            FrostedGlassBackground(
+                material: .underWindowBackground,
+                tint: BrandColors.canvasGlass
+            )
+            .ignoresSafeArea()
+        }
+        .tint(BrandColors.accentText)
+        .onAppear {
+            if let updateChecker, let changelog = updateChecker.checkWhatsNew() {
+                whatsNewVersion = updateChecker.currentVersion
+                whatsNewChangelog = changelog
+                showWhatsNew = true
             }
         }
-        .onAppear { setupKeyboardShortcuts() }
-        .onDisappear { removeKeyboardShortcuts() }
         .sheet(isPresented: $showAddSheet) {
             AddEditBlockView(store: store)
         }
@@ -64,228 +99,229 @@ struct MainSchedulerView: View {
             AddEditBlockView(store: store, existingBlock: block)
         }
         .sheet(isPresented: $showStats) {
-            if let stats { StatisticsView(stats: stats) }
+            if let stats {
+                StatisticsView(stats: stats)
+            }
         }
-        .onAppear(perform: refreshActiveBlock)
-        .onReceive(tickTimer) { _ in
-            now = Date()
-            refreshActiveBlock()
+        .sheet(isPresented: $showWhatsNew) {
+            WhatsNewView(version: whatsNewVersion, changelog: whatsNewChangelog) {
+                showWhatsNew = false
+            }
         }
-    }
-
-    // MARK: - Computed
-
-    private var todayBlocks: [TimeBlock] {
-        store.todayBlocks().sorted { $0.startTime < $1.startTime }
     }
 
     // MARK: - Header
 
     private var headerBar: some View {
-        HStack {
+        HStack(alignment: .center) {
             VStack(alignment: .leading, spacing: 2) {
                 Text("今日排程")
-                    .font(.title2.weight(.semibold))
-                Text(todayDateString)
+                    .font(.title3.weight(.semibold))
+                    .foregroundStyle(BrandColors.textPrimary)
+                Text(Date().chineseDateString)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(BrandColors.textSecondary)
             }
+
             Spacer()
-            Picker("视图", selection: $viewMode) {
-                ForEach(ViewMode.allCases, id: \.rawValue) { mode in
-                    Label(mode.rawValue, systemImage: mode == .list ? "list.bullet" : "rectangle.split.1x2")
-                        .tag(mode)
+
+            HStack(spacing: 8) {
+                MinimalSegmentedControl(
+                    options: ViewMode.allCases.map { ($0, $0.rawValue) },
+                    selection: $viewMode
+                )
+
+                if stats != nil {
+                    Button {
+                        showStats = true
+                    } label: {
+                        Label("统计", systemImage: "chart.bar")
+                            .font(.caption.weight(.medium))
+                    }
+                    .buttonStyle(MinimalSecondaryButtonStyle(horizontalPadding: 10, verticalPadding: 6))
                 }
-            }
-            .pickerStyle(.segmented)
-            .frame(width: 140)
-            if stats != nil {
-                Button { showStats = true } label: {
-                    Label("统计", systemImage: "chart.bar.fill")
-                }
-                .buttonStyle(.bordered)
             }
         }
+        .padding(.top, 10)
         .padding(.horizontal, 20)
-        .padding(.vertical, 14)
+        .padding(.bottom, 12)
     }
 
     // MARK: - Empty State
 
     private var emptyState: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 16) {
             Spacer()
-            Image(systemName: "calendar.badge.plus")
-                .font(.system(size: 52, weight: .light))
-                .foregroundStyle(BrandColors.accent)
-                .symbolEffect(.bounce.up, options: .repeating)
 
-            VStack(spacing: 6) {
-                Text("今天还没有安排任务")
-                    .font(.title3.weight(.medium))
-                Text("点击下方 + 按钮或按 ⌘N 添加第一个任务")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+            ZStack {
+                Circle()
+                    .fill(BrandColors.accentSoft)
+                    .frame(width: 56, height: 56)
+                Circle()
+                    .strokeBorder(BrandColors.accentBorder, lineWidth: 1)
+                    .frame(width: 56, height: 56)
+                Image(systemName: "calendar")
+                    .font(.system(size: 22, weight: .light))
+                    .foregroundStyle(BrandColors.accentText)
             }
 
-            VStack(spacing: 10) {
-                Label("菜单栏输入任务名，快速创建 30 分钟时间块", systemImage: "text.cursor")
-                Label("鼠标悬停 Mac 刘海，快速预览今日排程", systemImage: "rectangle.and.hand.point.up.left")
-                Label("任务结束时全屏遮罩强提醒，帮你保持专注", systemImage: "bell.badge")
-            }
-            .font(.caption)
-            .foregroundStyle(.tertiary)
-            .padding(.vertical, 8)
+            Text("暂无排程")
+                .font(.headline)
+                .foregroundStyle(BrandColors.textPrimary)
 
-            Button { showAddSheet = true } label: {
-                Label("添加第一个任务", systemImage: "plus")
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 8)
+            Button {
+                showAddSheet = true
+            } label: {
+                Label("新建任务", systemImage: "plus")
             }
-            .buttonStyle(.borderedProminent)
-            .tint(BrandColors.accent)
+            .buttonStyle(MinimalPrimaryButtonStyle(horizontalPadding: 18, verticalPadding: 8))
+            .keyboardShortcut("n", modifiers: .command)
 
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(40)
     }
 
     // MARK: - Block List
 
     private var blockList: some View {
-        List {
-            ForEach(todayBlocks) { block in
-                TimeBlockRowView(
-                    block: block,
-                    isActive: block.id == activeBlock?.id
-                )
-                .contentShape(Rectangle())
-                .onTapGesture { editingBlock = block }
-                .contextMenu { statusMenu(for: block) }
+        ScrollView {
+            LazyVStack(spacing: 8) {
+                ForEach(todayBlocks) { block in
+                    TimeBlockRowView(
+                        block: block,
+                        isActive: block.id == scheduler.activeBlockID,
+                        onToggleComplete: block.isBreak ? nil : { toggleStatus(for: block) }
+                    )
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        if !block.isBreak {
+                            editingBlock = block
+                        }
+                    }
+                    .contextMenu { statusMenu(for: block) }
+                }
             }
-            .animation(.smooth(duration: 0.3), value: todayBlocks.map(\.id))
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .padding(.bottom, 56)
         }
-        .listStyle(.plain)
+        .scrollIndicators(.hidden)
     }
 
-    // MARK: - Status Bar
-
-    private var statusBar: some View {
-        HStack(spacing: 16) {
-            if let active = activeBlock {
-                Label("当前：\(active.title)", systemImage: "clock")
-                    .font(.caption).foregroundStyle(.secondary)
-                Spacer()
-                if let remaining = active.remainingTime {
-                    Text("剩余 \(remaining.countdownString)")
-                        .font(.caption.monospacedDigit()).foregroundStyle(.green)
-                }
-            } else {
-                Label("暂无进行中的任务", systemImage: "moon.zzz")
-                    .font(.caption).foregroundStyle(.tertiary)
-                Spacer()
-            }
-
-            if let s = stats {
-                HStack(spacing: 8) {
-                    Label("\(s.todayCompleted)/\(s.todayTotal)", systemImage: "checkmark")
-                        .font(.caption).foregroundStyle(.green)
-                    Label(s.todayFocusTime.compactDuration, systemImage: "timer")
-                        .font(.caption).foregroundStyle(.blue)
-                    if s.currentStreak > 1 {
-                        Label("\(s.currentStreak)天", systemImage: "flame.fill")
-                            .font(.caption).foregroundStyle(.orange)
-                    }
-                }
-            }
-        }
-        .padding(.horizontal, 20).padding(.vertical, 10)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8))
+    private func toggleStatus(for block: TimeBlock) {
+        let nextStatus: BlockStatus = block.status == .completed ? .pending : .completed
+        store.update(block.with(status: nextStatus))
     }
 
     // MARK: - Context Menu
 
     @ViewBuilder
     private func statusMenu(for block: TimeBlock) -> some View {
-        if block.status == .pending {
+        if !block.isBreak {
+            if block.status != .completed {
+                Button {
+                    store.update(block.with(status: .completed))
+                } label: {
+                    Label("标记已完成", systemImage: "checkmark.circle")
+                }
+            }
+            if block.status != .missed {
+                Button {
+                    store.update(block.with(status: .missed))
+                } label: {
+                    Label("标记未完成", systemImage: "xmark.circle")
+                }
+            }
+            if block.status != .pending && block.endTime > Date() {
+                Button {
+                    store.update(block.with(status: .pending))
+                } label: {
+                    Label("恢复为进行中", systemImage: "arrow.uturn.backward")
+                }
+            }
+            Divider()
             Button {
-                markCompleted(block)
+                editingBlock = block
             } label: {
-                Label("标记已完成", systemImage: "checkmark.circle")
+                Label("编辑", systemImage: "pencil")
             }
-            .sensoryFeedback(.success, trigger: block.status)
-        }
-        if block.status == .missed || block.status == .completed {
-            Button {
-                markPending(block)
+            Divider()
+            Button(role: .destructive) {
+                store.delete(block)
             } label: {
-                Label("恢复为进行中", systemImage: "arrow.uturn.backward")
+                Label("删除", systemImage: "trash")
             }
         }
-        Divider()
-        Button {
-            editingBlock = block
-        } label: {
-            Label("编辑", systemImage: "pencil")
-        }
-        Divider()
-        Button(role: .destructive) {
-            store.delete(block)
-        } label: {
-            Label("删除", systemImage: "trash")
-        }
+    }
+}
+
+private struct SchedulerStatusBar: View {
+    let store: TimeBlockStore
+    let scheduler: BlockScheduler
+    let stats: StatisticsStore?
+
+    private var activeBlock: TimeBlock? {
+        guard let activeID = scheduler.activeBlockID else { return nil }
+        return store.blocks.first { $0.id == activeID }
     }
 
-    // MARK: - Actions
-
-    private func refreshActiveBlock() {
-        activeBlock = store.activeBlock(at: now)
-    }
-
-    private func markCompleted(_ block: TimeBlock) { store.update(block.with(status: .completed)) }
-
-    @State private var keyMonitor: Any?
-
-    private func setupKeyboardShortcuts() {
-        guard keyMonitor == nil else { return }
-        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-            if event.modifierFlags.contains(.command),
-               event.charactersIgnoringModifiers == "n" {
-                DispatchQueue.main.async { self.showAddSheet = true }
-                return nil
+    var body: some View {
+        HStack(spacing: 14) {
+            if let active = activeBlock {
+                HStack(spacing: 6) {
+                    Circle()
+                        .fill(BrandColors.accentText)
+                        .frame(width: 6, height: 6)
+                    Text(active.title)
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(BrandColors.textPrimary)
+                        .lineLimit(1)
+                    if let remaining = active.remainingTime(at: scheduler.now) {
+                        Text(remaining.countdownString)
+                            .font(.caption.monospacedDigit())
+                            .foregroundStyle(BrandColors.accentText)
+                            .contentTransition(.numericText())
+                    }
+                }
+            } else {
+                Text("空闲")
+                    .font(.caption)
+                    .foregroundStyle(BrandColors.textTertiary)
             }
-            return event
+
+            Spacer()
+
+            if let s = stats {
+                HStack(spacing: 10) {
+                    Text("\(s.todayCompleted)/\(s.todayTotal)")
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(BrandColors.textSecondary)
+                    Text(s.todayFocusTime.compactDuration)
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(BrandColors.accentText)
+                    if s.currentStreak > 1 {
+                        Label("\(s.currentStreak)d", systemImage: "flame")
+                            .font(.caption.monospacedDigit())
+                            .foregroundStyle(BrandColors.textSecondary)
+                    }
+                }
+            }
         }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 10)
+        .background(BrandColors.surface.opacity(0.65))
     }
-
-    private func removeKeyboardShortcuts() {
-        if let monitor = keyMonitor {
-            NSEvent.removeMonitor(monitor)
-            keyMonitor = nil
-        }
-    }
-
-    private func markPending(_ block: TimeBlock) { store.update(block.with(status: .pending)) }
-    }
-
-    // MARK: - Helpers
-
-    private var todayDateString: String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "zh_CN")
-        formatter.dateFormat = "MM月dd日 EEEE"
-        return formatter.string(from: Date())
-    }
+}
 
 #if DEBUG
 #Preview {
-    let store = TimeBlockStore()
-    let now = Date()
+    let store = TimeBlockStore(userDefaults: UserDefaults(suiteName: "preview.main") ?? .standard)
+    let scheduler = BlockScheduler(store: store)
     let calendar = Calendar.current
-    let startOfDay = calendar.startOfDay(for: now)
+    let startOfDay = calendar.startOfDay(for: Date())
 
-    let blocks: [TimeBlock] = [
+    store.blocks = [
         TimeBlock(
             title: "晨间阅读",
             startTime: calendar.date(byAdding: .hour, value: 8, to: startOfDay)!,
@@ -304,15 +340,8 @@ struct MainSchedulerView: View {
             endTime: calendar.date(byAdding: .hour, value: 12, to: startOfDay)!,
             status: .pending
         ),
-        TimeBlock(
-            title: "午休",
-            startTime: calendar.date(byAdding: .hour, value: 12, to: startOfDay)!,
-            endTime: calendar.date(byAdding: .hour, value: 13, to: startOfDay)!,
-            status: .pending
-        ),
     ]
-    store.blocks = blocks
 
-    return MainSchedulerView(store: store)
+    return MainSchedulerView(store: store, scheduler: scheduler, stats: StatisticsStore(store: store))
 }
 #endif

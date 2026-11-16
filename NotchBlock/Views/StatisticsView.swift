@@ -1,129 +1,194 @@
 import SwiftUI
 
-/// Productivity analytics dashboard showing daily/weekly completion data.
+/// Productivity analytics dashboard showing daily and weekly completion metrics.
 struct StatisticsView: View {
-    @ObservedObject var stats: StatisticsStore
+    let stats: StatisticsStore
     @Environment(\.dismiss) private var dismiss
-    @State private var selectedTab = 0
+    @State private var selectedTab: StatsTab = .overview
+
+    private enum StatsTab: String, CaseIterable, Hashable {
+        case overview = "今日"
+        case heatmap = "热力图"
+        case trend = "趋势"
+    }
 
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("📊 统计").font(.headline)
+                Text("统计")
+                    .font(.headline)
+                    .foregroundStyle(BrandColors.textPrimary)
                 Spacer()
-                Picker("", selection: $selectedTab) {
-                    Text("今日").tag(0); Text("热力图").tag(1); Text("趋势").tag(2)
-                }.pickerStyle(.segmented).frame(width: 200)
-            }.padding(.horizontal, 20).padding(.vertical, 14)
-            Divider()
+                MinimalSegmentedControl(
+                    options: StatsTab.allCases.map { ($0, $0.rawValue) },
+                    selection: $selectedTab
+                )
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
+
+            MinimalHairline()
+
             ScrollView {
                 VStack(spacing: 20) {
                     switch selectedTab {
-                    case 0: todaySection; weekSection
-                    case 1: heatmapSection
-                    case 2: trendSection
-                    default: EmptyView()
+                    case .overview:
+                        todaySection
+                        weekSection
+                    case .heatmap:
+                        heatmapSection
+                    case .trend:
+                        trendSection
                     }
-                }.padding(20)
+                }
+                .padding(20)
             }
-            Divider()
+            .scrollIndicators(.hidden)
+
+            MinimalHairline()
+
             HStack {
-                if let best = stats.bestHour, selectedTab == 1 {
-                    Label("最佳时段: \(best.hour):00 (\(Int(best.rate * 100))%)", systemImage: "sparkles")
-                        .font(.caption).foregroundStyle(.orange)
+                if let best = stats.bestHour, selectedTab == .heatmap {
+                    Label("峰值时段 \(String(format: "%02d:00", best.hour)) · \(Int(best.rate * 100))%", systemImage: "sparkles")
+                        .font(.caption)
+                        .foregroundStyle(BrandColors.accentText)
                 }
                 Spacer()
                 Button("关闭") { dismiss() }
-            }.padding(.horizontal, 20).padding(.vertical, 10)
+                    .buttonStyle(MinimalSecondaryButtonStyle(horizontalPadding: 14, verticalPadding: 6))
+                    .keyboardShortcut(.cancelAction)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 10)
         }
         .frame(width: 460, height: 520)
+        .background {
+            FrostedGlassBackground(
+                material: .hudWindow,
+                tint: BrandColors.canvasGlass
+            )
+            .ignoresSafeArea()
+        }
     }
 
     private var todaySection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("今日").font(.title3.weight(.semibold))
-            HStack(spacing: 16) {
-                statCard(icon: "checkmark.circle.fill", color: .green,
-                         value: "\(stats.todayCompleted)/\(stats.todayTotal)", label: "完成任务")
-                statCard(icon: "clock.fill", color: .blue,
-                         value: stats.todayFocusTime.compactDuration, label: "专注时间")
-                statCard(icon: "flame.fill", color: .orange,
-                         value: "\(stats.currentStreak)天", label: "连续打卡")
+            Text("今日")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(BrandColors.textSecondary)
+
+            HStack(spacing: 12) {
+                statCard(
+                    icon: "checkmark.circle",
+                    value: "\(stats.todayCompleted)/\(stats.todayTotal)",
+                    label: "完成"
+                )
+                statCard(
+                    icon: "clock",
+                    value: stats.todayFocusTime.compactDuration,
+                    label: "专注"
+                )
+                statCard(
+                    icon: "flame",
+                    value: "\(stats.currentStreak) 天",
+                    label: "连续"
+                )
             }
-            VStack(alignment: .leading, spacing: 4) {
+
+            VStack(alignment: .leading, spacing: 6) {
                 HStack {
-                    Text("完成率").font(.caption).foregroundStyle(.secondary)
+                    Text("完成率")
+                        .font(.caption)
+                        .foregroundStyle(BrandColors.textSecondary)
                     Spacer()
                     Text("\(Int(stats.todayCompletionRate * 100))%")
-                        .font(.caption.monospacedDigit()).foregroundStyle(.secondary)
+                        .font(.caption.monospacedDigit().weight(.medium))
+                        .foregroundStyle(BrandColors.accentText)
                 }
                 GeometryReader { geo in
+                    let clampedRate = min(max(stats.todayCompletionRate, 0), 1)
                     ZStack(alignment: .leading) {
-                        RoundedRectangle(cornerRadius: 4).fill(Color.secondary.opacity(0.15)).frame(height: 8)
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(completionBarColor)
-                            .frame(width: geo.size.width * stats.todayCompletionRate, height: 8)
+                        Capsule()
+                            .fill(BrandColors.surfaceSubtle)
+                            .frame(height: 7)
+                        Capsule()
+                            .fill(BrandColors.accent)
+                            .frame(width: geo.size.width * clampedRate, height: 7)
                     }
-                }.frame(height: 8)
+                }
+                .frame(height: 7)
             }
         }
     }
 
     private var weekSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("本周").font(.title3.weight(.semibold))
-            HStack(spacing: 4) {
-                ForEach(stats.weekDailyCompletion, id: \.label) { day in
+        let daily = stats.weekDailyCompletion
+        let maxCount = max(daily.map(\.count).max() ?? 1, 1)
+
+        return VStack(alignment: .leading, spacing: 12) {
+            Text("近 7 日")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(BrandColors.textSecondary)
+
+            HStack(alignment: .bottom, spacing: 8) {
+                ForEach(daily) { day in
+                    let barHeight = day.count > 0
+                        ? max(10, CGFloat(day.count) / CGFloat(maxCount) * 76)
+                        : 4
                     VStack(spacing: 4) {
-                        Text("\(day.count)").font(.caption2.monospacedDigit().weight(.medium))
-                            .foregroundStyle(day.count > 0 ? .primary : .tertiary)
-                        RoundedRectangle(cornerRadius: 3)
-                            .fill(day.count > 0 ? Color.accentColor : Color.secondary.opacity(0.15))
-                            .frame(height: max(4, CGFloat(day.count) * 20))
-                        Text(day.label).font(.system(size: 10)).foregroundStyle(.secondary)
-                    }.frame(maxWidth: .infinity)
+                        Text("\(day.count)")
+                            .font(.caption2.monospacedDigit().weight(.medium))
+                            .foregroundStyle(day.count > 0 ? BrandColors.textPrimary : BrandColors.textTertiary)
+                        RoundedRectangle(cornerRadius: 4, style: .continuous)
+                            .fill(day.count > 0 ? BrandColors.accent : BrandColors.surfaceSubtle)
+                            .frame(height: barHeight)
+                        Text(day.label)
+                            .font(.system(size: 10))
+                            .foregroundStyle(BrandColors.textSecondary)
+                    }
+                    .frame(maxWidth: .infinity)
                 }
-            }.frame(height: 120)
+            }
+            .frame(height: 118, alignment: .bottom)
+            .padding(14)
+            .minimalCard(cornerRadius: 12)
+
             HStack {
-                Label("周完成: \(stats.weekTotalCompleted) 项", systemImage: "checkmark")
-                    .font(.caption).foregroundStyle(.secondary)
+                Text("完成 \(stats.weekTotalCompleted) 项")
+                    .font(.caption)
+                    .foregroundStyle(BrandColors.textSecondary)
                 Spacer()
-                Label("周专注: \(stats.weekTotalFocusTime.compactDuration)", systemImage: "timer")
-                    .font(.caption).foregroundStyle(.secondary)
+                Text("专注 \(stats.weekTotalFocusTime.compactDuration)")
+                    .font(.caption)
+                    .foregroundStyle(BrandColors.accentText)
             }
         }
-    }
-
-    private var completionBarColor: Color {
-        let rate = stats.todayCompletionRate
-        if rate >= 0.8 { return .green }
-        if rate >= 0.5 { return .orange }
-        return .red
     }
 
     // MARK: - Heatmap
 
     private var heatmapSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("时段完成率").font(.title3.weight(.semibold))
-            Text("颜色越深 = 完成率越高").font(.caption).foregroundStyle(.secondary)
+            Text("时段分布")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(BrandColors.textSecondary)
 
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 4), count: 6), spacing: 4) {
-                ForEach(stats.hourlyProductivity, id: \.hour) { h in
-                    VStack(spacing: 2) {
-                        Text(String(format: "%02d", h.hour))
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 6), spacing: 6) {
+                ForEach(stats.hourlyProductivity) { hourItem in
+                    VStack(spacing: 3) {
+                        Text(String(format: "%02d", hourItem.hour))
                             .font(.system(size: 9, design: .monospaced))
-                            .foregroundStyle(.secondary)
-                        RoundedRectangle(cornerRadius: 3)
-                            .fill(heatmapColor(rate: h.rate, count: h.count))
+                            .foregroundStyle(BrandColors.textTertiary)
+                        RoundedRectangle(cornerRadius: 4, style: .continuous)
+                            .fill(BrandColors.heatmapColor(rate: hourItem.rate, count: hourItem.count))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                    .strokeBorder(BrandColors.hairline.opacity(0.6), lineWidth: 0.5)
+                            )
                             .frame(height: 28)
-                        if h.count > 0 {
-                            Text("\(Int(h.rate * 100))%")
-                                .font(.system(size: 8, design: .monospaced))
-                                .foregroundStyle(.secondary)
-                        } else {
-                            Text("·").font(.caption2).foregroundStyle(.tertiary)
-                        }
+                        Text(hourItem.count > 0 ? "\(Int(hourItem.rate * 100))%" : "·")
+                            .font(.system(size: 8, design: .monospaced))
+                            .foregroundStyle(hourItem.count > 0 ? BrandColors.textSecondary : BrandColors.textTertiary)
                     }
                 }
             }
@@ -134,66 +199,78 @@ struct StatisticsView: View {
 
     private var trendSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("周完成率趋势").font(.title3.weight(.semibold))
+            Text("周完成率")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(BrandColors.textSecondary)
 
-            VStack(spacing: 8) {
-                ForEach(stats.weeklyTrend, id: \.label) { week in
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack {
-                            Text(week.label).font(.caption).frame(width: 50, alignment: .leading)
-                            GeometryReader { geo in
-                                ZStack(alignment: .leading) {
-                                    RoundedRectangle(cornerRadius: 3)
-                                        .fill(Color.secondary.opacity(0.1)).frame(height: 20)
-                                    RoundedRectangle(cornerRadius: 3)
-                                        .fill(trendColor(rate: week.rate))
-                                        .frame(width: geo.size.width * week.rate, height: 20)
-                                }
-                            }.frame(height: 20)
-                            Text("\(week.completed)/\(week.total)")
-                                .font(.caption2.monospacedDigit()).frame(width: 30, alignment: .trailing)
-                            Text("\(Int(week.rate * 100))%")
-                                .font(.caption2.monospacedDigit().weight(.medium)).frame(width: 36, alignment: .trailing)
+            VStack(spacing: 10) {
+                ForEach(stats.weeklyTrend) { week in
+                    HStack(spacing: 10) {
+                        Text(week.label)
+                            .font(.caption)
+                            .foregroundStyle(BrandColors.textSecondary)
+                            .frame(width: 46, alignment: .leading)
+                        GeometryReader { geo in
+                            let clampedRate = min(max(week.rate, 0), 1)
+                            ZStack(alignment: .leading) {
+                                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                    .fill(BrandColors.surfaceSubtle)
+                                    .frame(height: 18)
+                                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                    .fill(BrandColors.accent.opacity(max(0.35, clampedRate)))
+                                    .frame(width: geo.size.width * clampedRate, height: 18)
+                            }
                         }
+                        .frame(height: 18)
+                        Text("\(week.completed)/\(week.total)")
+                            .font(.caption2.monospacedDigit())
+                            .foregroundStyle(BrandColors.textSecondary)
+                            .frame(width: 34, alignment: .trailing)
+                        Text("\(Int(week.rate * 100))%")
+                            .font(.caption2.monospacedDigit().weight(.medium))
+                            .foregroundStyle(BrandColors.accentText)
+                            .frame(width: 36, alignment: .trailing)
                     }
                 }
             }
+            .padding(14)
+            .minimalCard(cornerRadius: 12)
 
             HStack {
-                Label("专注总时长: \(stats.weekTotalFocusTime.compactDuration)", systemImage: "timer")
-                    .font(.caption).foregroundStyle(.secondary)
+                Text("近 7 日专注 \(stats.weekTotalFocusTime.compactDuration)")
+                    .font(.caption)
+                    .foregroundStyle(BrandColors.textSecondary)
                 Spacer()
-            }.padding(.top, 4)
+            }
         }
     }
 
     // MARK: - Helpers
 
-    private func heatmapColor(rate: Double, count: Int) -> Color {
-        if count == 0 { return Color.secondary.opacity(0.05) }
-        if rate >= 0.8 { return .green.opacity(0.7) }
-        if rate >= 0.5 { return .orange.opacity(0.5) }
-        if rate > 0 { return .red.opacity(0.4) }
-        return Color.secondary.opacity(0.1)
-    }
-
-    private func trendColor(rate: Double) -> Color {
-        if rate >= 0.7 { return .green }
-        if rate >= 0.4 { return .orange }
-        return .red
-    }
-
-    private func statCard(icon: String, color: Color, value: String, label: String) -> some View {
-        VStack(spacing: 4) {
-            Image(systemName: icon).font(.title2).foregroundStyle(color)
-            Text(value).font(.headline.monospacedDigit())
-            Text(label).font(.caption2).foregroundStyle(.secondary)
+    private func statCard(icon: String, value: String, label: String) -> some View {
+        VStack(spacing: 5) {
+            Image(systemName: icon)
+                .font(.title3.weight(.light))
+                .foregroundStyle(BrandColors.accentText)
+            Text(value)
+                .font(.headline.monospacedDigit())
+                .foregroundStyle(BrandColors.textPrimary)
+            Text(label)
+                .font(.caption2)
+                .foregroundStyle(BrandColors.textSecondary)
         }
-        .frame(maxWidth: .infinity).padding(.vertical, 12)
-        .background(Color.secondary.opacity(0.1), in: RoundedRectangle(cornerRadius: 10))
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
+        .minimalCard(cornerRadius: 10)
     }
 }
 
 #if DEBUG
-#Preview { StatisticsView(stats: StatisticsStore(store: TimeBlockStore())) }
+#Preview {
+    StatisticsView(
+        stats: StatisticsStore(
+            store: TimeBlockStore(userDefaults: UserDefaults(suiteName: "preview.stats") ?? .standard)
+        )
+    )
+}
 #endif

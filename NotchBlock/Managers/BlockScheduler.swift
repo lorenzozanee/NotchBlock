@@ -1,57 +1,89 @@
 import Foundation
-import Combine
+import Observation
 
-/// Monitors time blocks and triggers the hard-interrupt overlay when a block's end time arrives.
-///
-/// Runs a 1-second polling timer. When a .pending block's endTime passes,
-/// fires `onBlockEnded` so the app can show the overlay (Phase 3).
-final class BlockScheduler: ObservableObject {
-    private let store: TimeBlockStore
-    private var timer: Timer?
-    private var triggeredBlockIDs = Set<UUID>()
+/// Monitors pending time blocks on a 1-second structured task and triggers
+/// the fullscreen overlay when a block's end time arrives.
+@Observable
+@MainActor
+final class BlockScheduler {
+    private(set) var now = Date()
+    private(set) var activeBlockID: UUID?
 
-    /// Called when a block's end time is reached and the overlay should appear
-    var onBlockEnded: ((TimeBlock) -> Void)?
+    @ObservationIgnored private let store: TimeBlockStore
+    @ObservationIgnored private let staleThreshold: TimeInterval
+    @ObservationIgnored private var triggeredBlockIDs = Set<UUID>()
+    @ObservationIgnored nonisolated(unsafe) private var pollingTask: Task<Void, Never>?
 
-    init(store: TimeBlockStore) {
+    @ObservationIgnored var onBlockEnded: ((TimeBlock) -> Void)?
+
+    init(store: TimeBlockStore, staleThreshold: TimeInterval = 300) {
         self.store = store
+        self.staleThreshold = staleThreshold
+    }
+
+    deinit {
+        pollingTask?.cancel()
     }
 
     func start() {
-        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            self?.checkBlocks()
-        }
-        checkBlocks() // catch already-expired blocks immediately
-    }
-
-    func stop() { timer?.invalidate(); timer = nil }
-    deinit { stop() }
-
-    // MARK: - Internal
-
-    private func checkBlocks() {
-        let now = Date()
-        let today = store.todayBlocks()
-
-        for block in today {
-            guard block.status == .pending else { continue }
-
-            if block.endTime <= now {
-                if !block.isBreak && !triggeredBlockIDs.contains(block.id) {
-                    triggeredBlockIDs.insert(block.id)
-                    DispatchQueue.main.async { [weak self] in
-                        self?.onBlockEnded?(block)
-                    }
-                }
-                if block.isBreak { completeBreak(block) }
-                else { autoMarkMissed(block) }
+        guard pollingTask == nil else { return }
+        pollingTask = Task { [weak self] in
+            while !Task.isCancelled {
+                self?.checkBlocks()
+                try? await Task.sleep(for: .seconds(1))
             }
         }
     }
 
-    private func completeBreak(_ block: TimeBlock) {
-        store.update(block.with(status: .completed))
+    func stop() {
+        pollingTask?.cancel()
+        pollingTask = nil
     }
 
-    private func autoMarkMissed(_ block: TimeBlock) { store.update(block.with(status: .missed)) }
+    // MARK: - Block Evaluation
+
+    func checkBlocks(now: Date = Date()) {
+        self.now = now
+        var breakIDsToComplete = Set<UUID>()
+        var staleIDsToMiss = Set<UUID>()
+        var newlyEndedBlocks: [TimeBlock] = []
+
+        for block in store.blocks where block.status == .pending {
+            if block.endTime > now {
+                // Clear trigger cache if the block was extended or rescheduled into the future.
+                triggeredBlockIDs.remove(block.id)
+                continue
+            }
+
+            if block.isBreak {
+                breakIDsToComplete.insert(block.id)
+            } else if now.timeIntervalSince(block.endTime) > staleThreshold {
+                staleIDsToMiss.insert(block.id)
+            } else if !triggeredBlockIDs.contains(block.id) {
+                triggeredBlockIDs.insert(block.id)
+                newlyEndedBlocks.append(block)
+            }
+        }
+
+        if !breakIDsToComplete.isEmpty || !staleIDsToMiss.isEmpty {
+            store.applyBatch { blocks in
+                for idx in blocks.indices {
+                    if breakIDsToComplete.contains(blocks[idx].id) {
+                        blocks[idx] = blocks[idx].with(status: .completed)
+                    } else if staleIDsToMiss.contains(blocks[idx].id) {
+                        blocks[idx] = blocks[idx].with(status: .missed)
+                    }
+                }
+            }
+        }
+
+        for block in newlyEndedBlocks {
+            onBlockEnded?(block)
+        }
+
+        let currentActiveID = store.activeBlock(at: now)?.id
+        if activeBlockID != currentActiveID {
+            activeBlockID = currentActiveID
+        }
+    }
 }

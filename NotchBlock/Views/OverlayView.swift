@@ -1,9 +1,6 @@
 import SwiftUI
 
-/// Fullscreen hard-interrupt overlay at time block end (AC 3.1, 3.2).
-///
-/// 70% opacity black backdrop with centered card showing task name,
-/// [已完成] / [去调整计划] buttons, and a live 5-minute countdown.
+/// Fullscreen hard-interrupt frosted-glass overlay shown when a time block ends.
 struct OverlayView: View {
     let block: TimeBlock
     let subsequentTaskCount: Int
@@ -11,141 +8,154 @@ struct OverlayView: View {
     let onAdjust: () -> Void
     let onExtend: (TimeInterval, Bool) -> Void
 
-    @State private var elapsedSeconds: Int = 0
+    @State private var timeoutDeadline = Date().addingTimeInterval(300)
     @State private var cardAppeared = false
     @State private var customMinutes = ""
     @State private var showCustomField = false
     @State private var shiftAllSubsequent = false
-    @State private var extendedLabel: String?
 
-    private func doExtend(_ seconds: TimeInterval) {
-        let mins = Int(seconds / 60)
-        extendedLabel = "已延长 \(mins) 分钟"
-        onExtend(seconds, shiftAllSubsequent)
-    }
-    private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
-    private let timeoutSeconds = 300
+    private let timeoutDuration: TimeInterval = 300
 
     var body: some View {
         ZStack {
-            Rectangle().fill(.ultraThinMaterial).ignoresSafeArea()
-                .overlay(
-                    RadialGradient(
-                        colors: [.black.opacity(0.45), .black.opacity(0.55), .black.opacity(0.7)],
-                        center: .center, startRadius: 200, endRadius: 800
-                    ).ignoresSafeArea()
-                )
+            ZStack {
+                VisualEffectBackdrop(material: .fullScreenUI, blendingMode: .behindWindow)
+                BrandColors.overlayScrim
+            }
+            .ignoresSafeArea()
 
-            VStack(spacing: 32) {
-                Image(systemName: "bell.and.waves.left.and.right")
-                    .font(.system(size: 56, weight: .light))
-                    .foregroundStyle(.white)
-                    .symbolEffect(.pulse, options: .repeating, value: cardAppeared)
-
-                VStack(spacing: 10) {
-                    Text("「\(block.title)」的时间到了！")
-                        .font(.title.weight(.semibold)).foregroundStyle(.primary)
-                    Text("你完成了这项任务吗？")
-                        .font(.title3).foregroundStyle(.secondary)
-                    HStack(spacing: 4) {
-                        Image(systemName: "timer").font(.caption)
-                        Text("\(remainingFormatted) 后自动标记为未完成")
-                            .font(.system(size: 16, weight: .medium, design: .monospaced))
-                    }.foregroundStyle(.tertiary).padding(.top, 6)
-                }.multilineTextAlignment(.center)
-
-                HStack(spacing: 16) {
-                    Button(action: onAdjust) {
-                        Text("去调整计划").frame(width: 140)
-                    }.buttonStyle(.plain).padding(.vertical, 10)
-                     .background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
-
-                    Button(action: onCompleted) {
-                        Text("已完成").frame(width: 140)
-                    }.buttonStyle(.plain).padding(.vertical, 10)
-                     .background(.white, in: RoundedRectangle(cornerRadius: 8))
-                     .foregroundStyle(.black).fontWeight(.semibold)
+            VStack(spacing: 28) {
+                ZStack {
+                    Circle()
+                        .fill(BrandColors.accentSoft)
+                        .frame(width: 68, height: 68)
+                    Circle()
+                        .strokeBorder(BrandColors.accentBorder, lineWidth: 1)
+                        .frame(width: 68, height: 68)
+                    Image(systemName: "bell")
+                        .font(.system(size: 28, weight: .light))
+                        .foregroundStyle(BrandColors.accentText)
+                        .symbolEffect(.pulse, options: .repeating, value: cardAppeared)
                 }
 
-                VStack(spacing: 10) {
-                    Text("延长时间").font(.subheadline.weight(.medium)).foregroundStyle(.secondary)
-                    HStack(spacing: 12) {
-                        extendButton("+5 分钟", 300)
-                        extendButton("+10 分钟", 600)
-                        Button("自定义") {
-                            withAnimation(.snappy) { showCustomField.toggle() }
-                        }
-                        .buttonStyle(.plain)
-                        .padding(.vertical, 6).padding(.horizontal, 14)
-                        .background(.quaternary, in: RoundedRectangle(cornerRadius: 6))
-                        .font(.caption)
-                    }
-                    if let label = extendedLabel {
-                        Text(label)
-                            .font(.caption.weight(.medium))
-                            .foregroundStyle(.green)
-                            .transition(.opacity)
-                    }
+                VStack(spacing: 8) {
+                    Text("「\(block.title)」已结束")
+                        .font(.title2.weight(.semibold))
+                        .foregroundStyle(BrandColors.textPrimary)
 
-                    Toggle(isOn: $shiftAllSubsequent) {
-                        Text("推迟所有后续任务\(subsequentTaskCount > 0 ? "（\(subsequentTaskCount)个）" : "")")
-                            .font(.caption)
+                    SwiftUI.TimelineView(.periodic(from: .now, by: 1)) { context in
+                        let remaining = max(0, Int(ceil(timeoutDeadline.timeIntervalSince(context.date))))
+                        Text("\(formatCountdown(remaining)) 后自动记为未完成")
+                            .font(.subheadline.monospacedDigit())
+                            .foregroundStyle(BrandColors.textSecondary)
                     }
-                    .toggleStyle(.checkbox)
-                    .foregroundStyle(.secondary)
+                }
+                .multilineTextAlignment(.center)
+
+                HStack(spacing: 12) {
+                    Button(action: onAdjust) {
+                        Text("调整排程")
+                            .frame(width: 132)
+                    }
+                    .buttonStyle(MinimalSecondaryButtonStyle(cornerRadius: 10, verticalPadding: 10))
+
+                    Button(action: onCompleted) {
+                        Text("已完成")
+                            .frame(width: 132)
+                    }
+                    .buttonStyle(MinimalPrimaryButtonStyle(cornerRadius: 10, verticalPadding: 10))
+                }
+
+                MinimalHairline()
+
+                VStack(spacing: 10) {
+                    HStack(spacing: 8) {
+                        extendButton("+5m", 300)
+                        extendButton("+10m", 600)
+                        Button {
+                            withAnimation(.snappy(duration: 0.18)) { showCustomField.toggle() }
+                        } label: {
+                            Text("自定义")
+                                .font(.caption.weight(.medium))
+                        }
+                        .buttonStyle(MinimalSecondaryButtonStyle(cornerRadius: 6, horizontalPadding: 12, verticalPadding: 6))
+                    }
 
                     if showCustomField {
                         HStack(spacing: 8) {
-                            TextField("分钟数", text: $customMinutes)
-                                .textFieldStyle(.plain)
-                                .frame(width: 80)
-                                .padding(.vertical, 5).padding(.horizontal, 10)
-                                .background(.quaternary, in: RoundedRectangle(cornerRadius: 6))
-                                .font(.caption)
-                            Button("延长") {
-                                if let mins = Int(customMinutes), mins > 0 {
-                                    doExtend(TimeInterval(mins * 60))
-                                    customMinutes = ""
-                                    showCustomField = false
-                                }
+                            TextField("分钟", text: $customMinutes)
+                                .minimalInput(cornerRadius: 6)
+                                .frame(width: 76)
+                                .onSubmit { extendCustom() }
+
+                            Button(action: extendCustom) {
+                                Text("延长")
+                                    .font(.caption.weight(.medium))
                             }
-                            .buttonStyle(.plain)
-                            .padding(.vertical, 5).padding(.horizontal, 12)
-                            .background(BrandColors.accent, in: RoundedRectangle(cornerRadius: 6))
-                            .foregroundStyle(.white).font(.caption)
-                            .disabled(Int(customMinutes) == nil || (Int(customMinutes) ?? 0) <= 0)
+                            .buttonStyle(MinimalPrimaryButtonStyle(cornerRadius: 6, horizontalPadding: 12, verticalPadding: 7))
+                            .disabled(parsedCustomMinutes == nil)
                         }
                     }
+
+                    Toggle(isOn: $shiftAllSubsequent) {
+                        Text("顺延后续任务\(subsequentTaskCount > 0 ? "（\(subsequentTaskCount)）" : "")")
+                            .font(.caption)
+                            .foregroundStyle(BrandColors.textSecondary)
+                    }
+                    .toggleStyle(.checkbox)
                 }
             }
-            .padding(40)
-            .background(RoundedRectangle(cornerRadius: 24).fill(.ultraThinMaterial))
-            .overlay(RoundedRectangle(cornerRadius: 24).strokeBorder(
-                LinearGradient(colors: [.white.opacity(0.2), .white.opacity(0.05)],
-                               startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1))
-            .shadow(color: .black.opacity(0.4), radius: 48, y: 8)
-            .scaleEffect(cardAppeared ? 1 : 0.9)
-            .opacity(cardAppeared ? 1 : 0)
+            .padding(34)
+            .frame(width: 400)
+            .background {
+                FrostedGlassBackground(
+                    material: .hudWindow,
+                    tint: BrandColors.panelGlass,
+                    cornerRadius: 24,
+                    showBorder: true
+                )
+            }
+            .shadow(color: .black.opacity(0.32), radius: 44, y: 12)
         }
-        .onReceive(timer) { _ in elapsedSeconds += 1 }
         .onAppear {
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) { cardAppeared = true }
+            timeoutDeadline = Date().addingTimeInterval(timeoutDuration)
+            cardAppeared = true
         }
+    }
+
+    private var parsedCustomMinutes: Int? {
+        guard let mins = Int(customMinutes.trimmingCharacters(in: .whitespaces)),
+              (1...480).contains(mins)
+        else { return nil }
+        return mins
+    }
+
+    private func extendCustom() {
+        guard let mins = parsedCustomMinutes else { return }
+        doExtend(TimeInterval(mins * 60))
+        customMinutes = ""
+        showCustomField = false
+    }
+
+    private func doExtend(_ seconds: TimeInterval) {
+        onExtend(seconds, shiftAllSubsequent)
     }
 
     private func extendButton(_ label: String, _ seconds: TimeInterval) -> some View {
-        Button(label) { doExtend(seconds) }
-            .buttonStyle(.plain)
-            .padding(.vertical, 6).padding(.horizontal, 14)
-            .background(BrandColors.accent.opacity(0.15), in: RoundedRectangle(cornerRadius: 6))
-            .foregroundStyle(BrandColors.accent)
-            .font(.caption.weight(.medium))
+        Button { doExtend(seconds) } label: {
+            Text(label)
+                .font(.caption.monospacedDigit().weight(.medium))
+                .foregroundStyle(BrandColors.accentText)
+                .padding(.vertical, 6)
+                .padding(.horizontal, 14)
+                .minimalCard(cornerRadius: 6, fill: BrandColors.accentSoft, border: BrandColors.accentBorder)
+        }
+        .buttonStyle(.plain)
     }
 
-    private var remainingFormatted: String {
-        let remaining = max(0, timeoutSeconds - elapsedSeconds)
-        let minutes = remaining / 60
-        let seconds = remaining % 60
+    private func formatCountdown(_ remainingSeconds: Int) -> String {
+        let minutes = remainingSeconds / 60
+        let seconds = remainingSeconds % 60
         return String(format: "%d:%02d", minutes, seconds)
     }
 }
@@ -162,7 +172,7 @@ struct OverlayView: View {
         subsequentTaskCount: 2,
         onCompleted: {},
         onAdjust: {},
-        onExtend: { _,_  in }
+        onExtend: { _, _ in }
     )
 }
 #endif

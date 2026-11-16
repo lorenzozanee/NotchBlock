@@ -1,6 +1,6 @@
 import Foundation
 
-struct TimeBlock: Identifiable, Codable, Equatable {
+struct TimeBlock: Identifiable, Codable, Equatable, Hashable, Sendable {
     let id: UUID
     var title: String
     var startTime: Date
@@ -31,7 +31,6 @@ struct TimeBlock: Identifiable, Codable, Equatable {
         case id, title, startTime, endTime, status, notes, isBreak
     }
 
-    // Custom Decodable for backward compat: old data lacks notes/isBreak fields
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try c.decode(UUID.self, forKey: .id)
@@ -39,8 +38,8 @@ struct TimeBlock: Identifiable, Codable, Equatable {
         startTime = try c.decode(Date.self, forKey: .startTime)
         endTime = try c.decode(Date.self, forKey: .endTime)
         status = try c.decode(BlockStatus.self, forKey: .status)
-        notes = (try? c.decode(String.self, forKey: .notes)) ?? ""
-        isBreak = (try? c.decode(Bool.self, forKey: .isBreak)) ?? false
+        notes = try c.decodeIfPresent(String.self, forKey: .notes) ?? ""
+        isBreak = try c.decodeIfPresent(Bool.self, forKey: .isBreak) ?? false
     }
 }
 
@@ -48,47 +47,59 @@ struct TimeBlock: Identifiable, Codable, Equatable {
 
 extension TimeBlock {
     func with(status: BlockStatus) -> TimeBlock {
-        TimeBlock(id: id, title: title, startTime: startTime, endTime: endTime, status: status, notes: notes, isBreak: isBreak)
+        TimeBlock(
+            id: id, title: title, startTime: startTime, endTime: endTime,
+            status: status, notes: notes, isBreak: isBreak
+        )
     }
 
     func withEndTime(_ newEnd: Date) -> TimeBlock {
-        TimeBlock(id: id, title: title, startTime: startTime, endTime: newEnd, status: status, notes: notes, isBreak: isBreak)
+        TimeBlock(
+            id: id, title: title, startTime: startTime, endTime: newEnd,
+            status: status, notes: notes, isBreak: isBreak
+        )
     }
 
     func withStartTime(_ newStart: Date) -> TimeBlock {
-        TimeBlock(id: id, title: title, startTime: newStart, endTime: endTime, status: status, notes: notes, isBreak: isBreak)
+        TimeBlock(
+            id: id, title: title, startTime: newStart, endTime: endTime,
+            status: status, notes: notes, isBreak: isBreak
+        )
     }
 }
 
-// MARK: - Computed Properties
+// MARK: - Queries
 
 extension TimeBlock {
     var duration: TimeInterval {
         endTime.timeIntervalSince(startTime)
     }
 
+    /// Half-open interval [startTime, endTime) so adjacent blocks don't overlap at boundaries.
     func contains(_ date: Date) -> Bool {
-        date >= startTime && date <= endTime
+        date >= startTime && date < endTime
     }
 
     func overlaps(with other: TimeBlock) -> Bool {
         startTime < other.endTime && other.startTime < endTime
     }
 
-    var isActiveNow: Bool {
-        let now = Date()
-        return now >= startTime && now <= endTime && status == .pending
+    func isActiveNow(at date: Date = Date()) -> Bool {
+        contains(date) && status == .pending
     }
 
-    var remainingTime: TimeInterval? {
-        let now = Date()
-        guard now < endTime else { return nil }
-        return endTime.timeIntervalSince(now)
+    func remainingTime(at date: Date = Date()) -> TimeInterval? {
+        guard date < endTime else { return nil }
+        return endTime.timeIntervalSince(date)
     }
 
-    var isPast: Bool {
-        Date() > endTime
+    func isPast(at date: Date = Date()) -> Bool {
+        date >= endTime
     }
+
+    var isActiveNow: Bool { isActiveNow() }
+    var remainingTime: TimeInterval? { remainingTime() }
+    var isPast: Bool { isPast() }
 
     var hasValidTimeRange: Bool {
         startTime < endTime

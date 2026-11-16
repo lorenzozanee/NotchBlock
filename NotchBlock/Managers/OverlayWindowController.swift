@@ -1,24 +1,30 @@
 import Cocoa
+import OSLog
 import SwiftUI
 import UserNotifications
-import OSLog
 
 private let overlayLogger = Logger(subsystem: "com.notchblock.app", category: "Overlay")
 
-/// Manages the hard-interrupt fullscreen overlay that appears when a time block ends.
-///
-/// Creates an NSPanel at CGShieldingWindowLevel to cover all applications,
-/// including fullscreen spaces (AC 3.4). Handles 5-minute timeout auto-mark-as-missed (AC 3.3).
-final class OverlayWindowController: ObservableObject {
-    private var overlayPanel: NSPanel?
+/// Borderless panel that can accept keyboard focus for custom duration input.
+private final class KeyableOverlayPanel: NSPanel {
+    override var canBecomeKey: Bool { true }
+    override var canBecomeMain: Bool { false }
+}
+
+/// Manages the hard-interrupt fullscreen overlay covering all displays when a time block ends.
+@MainActor
+final class OverlayWindowController {
+    private var overlayPanels: [NSPanel] = []
+    private var closingPanels: [UUID: [NSPanel]] = [:]
     private var currentBlock: TimeBlock?
-    private var timeoutTimer: Timer?
+    private var pendingQueue: [TimeBlock] = []
+    nonisolated(unsafe) private var timeoutTask: Task<Void, Never>?
 
     var onMarkCompleted: ((TimeBlock) -> Void)?
     var onMarkMissed: ((TimeBlock) -> Void)?
     var onAdjustSchedule: (() -> Void)?
     var onExtendBlock: ((TimeBlock, TimeInterval, Bool) -> Void)?
-    var subsequentTaskCountProvider: (() -> Int)?
+    var subsequentTaskCountProvider: ((TimeBlock) -> Int)?
 
     // MARK: - Sound
 
@@ -31,82 +37,134 @@ final class OverlayWindowController: ObservableObject {
 
     // MARK: - Constants
 
-    private static let overlayOpacity: CGFloat = 0.7       // AC 3.1
-    private static let timeoutSeconds: TimeInterval = 300   // AC 3.3
+    private static let timeoutDuration: Duration = .seconds(300)
+
+    var isVisible: Bool { !overlayPanels.isEmpty }
+
+    deinit {
+        timeoutTask?.cancel()
+    }
 
     // MARK: - Public API
 
-    private var overlayGeneration = 0
-
     func show(for block: TimeBlock) {
-        dismiss()
-        overlayGeneration += 1
-        let gen = overlayGeneration
+        if isVisible {
+            if currentBlock?.id != block.id && !pendingQueue.contains(where: { $0.id == block.id }) {
+                pendingQueue.append(block)
+            }
+            return
+        }
+
+        present(block: block)
+    }
+
+    func dismiss() {
+        timeoutTask?.cancel()
+        timeoutTask = nil
+        let panelsToClose = overlayPanels
+        overlayPanels.removeAll()
+        currentBlock = nil
+        guard !panelsToClose.isEmpty else { return }
+
+        let token = UUID()
+        closingPanels[token] = panelsToClose
+
+        NSAnimationContext.runAnimationGroup({ ctx in
+            ctx.duration = 0.25
+            ctx.timingFunction = CAMediaTimingFunction(name: .easeIn)
+            for panel in panelsToClose {
+                panel.animator().alphaValue = 0
+            }
+        }, completionHandler: { [weak self] in
+            Task { @MainActor [weak self] in
+                self?.finishClosing(token: token)
+            }
+        })
+    }
+
+    private func finishClosing(token: UUID) {
+        guard let panels = closingPanels.removeValue(forKey: token) else { return }
+        for panel in panels {
+            panel.orderOut(nil)
+        }
+    }
+
+    // MARK: - Presentation
+
+    private func present(block: TimeBlock) {
+        let screens = NSScreen.screens
+        guard !screens.isEmpty else { return }
+
+        let primaryScreen = NSScreen.main ?? screens[0]
         currentBlock = block
-        guard let screen = NSScreen.main else { return }
-        let screenFrame = screen.frame
+        let subsequentCount = subsequentTaskCountProvider?(block) ?? 0
+        var newPanels: [NSPanel] = []
+        var primaryPanel: NSPanel?
 
-        let panel = NSPanel(
-            contentRect: screenFrame,
-            styleMask: [.borderless, .nonactivatingPanel],
-            backing: .buffered,
-            defer: false
-        )
-        panel.isOpaque = false
-        panel.backgroundColor = .clear
-        panel.level = NSWindow.Level(Int(CGShieldingWindowLevel()))
-        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
-        panel.ignoresMouseEvents = false // AC 3.1: block clicks underneath
-        panel.isMovable = false
-        panel.isReleasedWhenClosed = false
-        panel.hidesOnDeactivate = false
-        panel.canHide = false
+        for screen in screens {
+            let screenFrame = screen.frame
+            let isPrimary = (screen == primaryScreen)
+            let panel = KeyableOverlayPanel(
+                contentRect: screenFrame,
+                styleMask: [.borderless, .nonactivatingPanel],
+                backing: .buffered,
+                defer: false
+            )
+            panel.isOpaque = false
+            panel.backgroundColor = .clear
+            panel.level = NSWindow.Level(Int(CGShieldingWindowLevel()))
+            panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
+            panel.ignoresMouseEvents = false
+            panel.isMovable = false
+            panel.isReleasedWhenClosed = false
+            panel.hidesOnDeactivate = false
+            panel.canHide = false
 
-        let count = subsequentTaskCountProvider?() ?? 0
-        let overlayView = OverlayView(
-            block: block,
-            subsequentTaskCount: count,
-            onCompleted: { [weak self] in self?.handleCompleted() },
-            onAdjust: { [weak self] in self?.handleAdjust() },
-            onExtend: { [weak self] seconds, shiftAll in self?.handleExtend(seconds, shiftAll: shiftAll) }
-        )
-        let hostingView = NSHostingView(rootView: overlayView)
-        hostingView.frame = screenFrame
-        hostingView.autoresizingMask = [.width, .height]
-        panel.contentView = hostingView
+            if isPrimary {
+                let overlayView = OverlayView(
+                    block: block,
+                    subsequentTaskCount: subsequentCount,
+                    onCompleted: { [weak self] in self?.handleCompleted() },
+                    onAdjust: { [weak self] in self?.handleAdjust() },
+                    onExtend: { [weak self] seconds, shiftAll in self?.handleExtend(seconds, shiftAll: shiftAll) }
+                )
+                let hosting = NSHostingView(rootView: overlayView)
+                hosting.frame = NSRect(origin: .zero, size: screenFrame.size)
+                hosting.autoresizingMask = [.width, .height]
+                panel.contentView = hosting
+                primaryPanel = panel
+            } else {
+                let backdropHosting = NSHostingView(rootView: SecondaryOverlayBackdrop())
+                backdropHosting.frame = NSRect(origin: .zero, size: screenFrame.size)
+                backdropHosting.autoresizingMask = [.width, .height]
+                panel.contentView = backdropHosting
+            }
 
-        overlayPanel = panel
-        OverlayWindowController.playAlertSound()
-        panel.alphaValue = 0
-        panel.orderFrontRegardless()
+            panel.alphaValue = 0
+            panel.orderFrontRegardless()
+            newPanels.append(panel)
+        }
+
+        overlayPanels = newPanels
+        primaryPanel?.makeKey()
+        Self.playAlertSound()
 
         NSAnimationContext.runAnimationGroup { ctx in
             ctx.duration = 0.35
             ctx.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-            panel.animator().alphaValue = 1.0
+            for panel in newPanels {
+                panel.animator().alphaValue = 1.0
+            }
         }
 
-        startTimeout()
+        startTimeout(for: block)
     }
 
-    func dismiss() {
-        timeoutTimer?.invalidate()
-        timeoutTimer = nil
-        guard let panel = overlayPanel else { return }
-        let gen = overlayGeneration
-        NSAnimationContext.runAnimationGroup({ ctx in
-            ctx.duration = 0.25
-            ctx.timingFunction = CAMediaTimingFunction(name: .easeIn)
-            panel.animator().alphaValue = 0
-        }, completionHandler: { [weak self] in
-            guard let self, self.overlayGeneration == gen else { return }
-            self.overlayPanel?.orderOut(nil)
-            self.overlayPanel = nil
-            self.currentBlock = nil
-        })
+    private func showNextQueuedIfAny() {
+        guard !pendingQueue.isEmpty else { return }
+        let next = pendingQueue.removeFirst()
+        present(block: next)
     }
-
-    var isVisible: Bool { overlayPanel != nil }
 
     // MARK: - Actions
 
@@ -114,9 +172,11 @@ final class OverlayWindowController: ObservableObject {
         guard let block = currentBlock else { return }
         dismiss()
         onMarkCompleted?(block)
+        showNextQueuedIfAny()
     }
 
     private func handleAdjust() {
+        pendingQueue.removeAll()
         dismiss()
         onAdjustSchedule?()
     }
@@ -125,49 +185,57 @@ final class OverlayWindowController: ObservableObject {
         guard let block = currentBlock else { return }
         dismiss()
         onExtendBlock?(block, seconds, shiftAll)
+        showNextQueuedIfAny()
     }
 
-    // MARK: - Timeout (AC 3.3)
+    // MARK: - Timeout
 
-    private func startTimeout() {
-        timeoutTimer?.invalidate()
-        timeoutTimer = Timer.scheduledTimer(
-            withTimeInterval: Self.timeoutSeconds,
-            repeats: false
-        ) { [weak self] _ in
-            guard let self, let block = self.currentBlock else { return }
-            DispatchQueue.main.async {
-                self.handleTimeout(block: block)
-            }
+    private func startTimeout(for block: TimeBlock) {
+        timeoutTask?.cancel()
+        timeoutTask = Task { [weak self] in
+            try? await Task.sleep(for: Self.timeoutDuration)
+            guard !Task.isCancelled, let self, self.currentBlock?.id == block.id else { return }
+            self.handleTimeout(block: block)
         }
     }
 
     private func handleTimeout(block: TimeBlock) {
-        onMarkMissed?(block)
         dismiss()
+        onMarkMissed?(block)
         sendMissedNotification(for: block)
+        showNextQueuedIfAny()
     }
 
     // MARK: - Notifications
 
-    // MARK: - Daily Summary
+    func scheduleDailySummary(stats: StatisticsStore, now: Date = Date()) {
+        let center = UNUserNotificationCenter.current()
+        center.removePendingNotificationRequests(withIdentifiers: ["daily-summary"])
 
-    func scheduleDailySummary(stats: StatisticsStore) {
+        let calendar = Calendar.current
+        var components = calendar.dateComponents([.year, .month, .day], from: now)
+        components.hour = 21
+        components.minute = 0
+
+        guard let targetDate = calendar.date(from: components),
+              targetDate > now,
+              stats.todayTotal > 0
+        else { return }
+
         let content = UNMutableNotificationContent()
         content.title = "今日 NotchBlock 统计"
         content.body = "完成 \(stats.todayCompleted)/\(stats.todayTotal) 项任务，专注 \(stats.todayFocusTime.compactDuration)"
         content.sound = .default
-        let trigger = UNCalendarNotificationTrigger(
-            dateMatching: DateComponents(hour: 21, minute: 0), repeats: true
-        )
-        UNUserNotificationCenter.current().add(
-            UNNotificationRequest(identifier: "daily-summary", content: content, trigger: trigger)
-        )
+
+        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+        center.add(UNNotificationRequest(identifier: "daily-summary", content: content, trigger: trigger))
     }
 
     func requestNotificationPermission() {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
-            if let error {
+        Task {
+            do {
+                _ = try await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge])
+            } catch {
                 overlayLogger.error("Notification permission: \(error.localizedDescription)")
             }
         }
@@ -185,5 +253,15 @@ final class OverlayWindowController: ObservableObject {
             trigger: nil
         )
         UNUserNotificationCenter.current().add(request)
+    }
+}
+
+private struct SecondaryOverlayBackdrop: View {
+    var body: some View {
+        ZStack {
+            VisualEffectBackdrop(material: .fullScreenUI, blendingMode: .behindWindow)
+            BrandColors.overlayScrim
+        }
+        .ignoresSafeArea()
     }
 }

@@ -16,12 +16,7 @@ xcuserdata/
 .DS_Store
 *.app
 
-# Python cache
+# Python / Lint caches
 __pycache__/
 *.pyc
-
-# ECC runtime state (machine-specific)
-.claude/ecc/install-state.json
-
-# Build artifacts
-build/
+.ruff_cache/
